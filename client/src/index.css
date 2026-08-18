@@ -1,0 +1,86 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* 
+ * Hallmark & UI/UX Pro Max Design System Tokens 
+ * Genre: Atmospheric / Editorial Studio Dark
+ * Palette: Dark Slate + Amber Gold + Cyan Accent
+ */
+
+@layer base {
+  :root {
+    --color-paper-bg: oklch(0.12 0.02 240);
+    --color-paper-card: oklch(0.16 0.025 240);
+    --color-paper-border: oklch(0.24 0.03 240);
+    --color-accent-amber: oklch(0.72 0.17 65);
+    --color-accent-cyan: oklch(0.70 0.15 220);
+    --color-text-main: oklch(0.96 0.01 240);
+    --color-text-muted: oklch(0.68 0.02 240);
+    
+    --radius-sm: 0.375rem;
+    --radius-md: 0.5rem;
+    --radius-lg: 0.75rem;
+    --radius-xl: 1rem;
+
+    --font-sans: 'Inter', sans-serif;
+    --font-display: 'Outfit', sans-serif;
+  }
+
+  body {
+    background-color: var(--color-paper-bg);
+    color: var(--color-text-main);
+    font-family: var(--font-sans);
+    overflow-x: clip;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-display);
+    letter-spacing: -0.02em;
+    font-style: normal; /* Hallmark Rule: Headings upright, no italic headers */
+  }
+}
+
+/* Custom Utilities for Microinteractions & Focus Ring (UI/UX Pro Max Priority 1 & 2) */
+@layer utilities {
+  .focus-ring {
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-studio-950;
+  }
+  
+  .glass-card {
+    background: rgba(21, 27, 36, 0.75);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  .glass-card-hover {
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .glass-card-hover:hover {
+    background: rgba(28, 36, 48, 0.85);
+    border-color: rgba(56, 189, 248, 0.25);
+    transform: translateY(-2px);
+  }
+
+  .min-touch-target {
+    min-width: 44px;
+    min-height: 44px;
+  }
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #090b0e;
+}
+::-webkit-scrollbar-thumb {
+  background: #1c2430;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #2a3647;
+}
