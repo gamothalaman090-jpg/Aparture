@@ -1,86 +1,148 @@
+@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&family=Inter+Tight:ital,wght@0,300..900;1,300..900&family=JetBrains+Mono:wght@300;400;500;600;700&family=Space+Grotesk:wght@300;400;500;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* 
- * Hallmark & UI/UX Pro Max Design System Tokens 
- * Genre: Atmospheric / Editorial Studio Dark
- * Palette: Dark Slate + Amber Gold + Cyan Accent
- */
-
 @layer base {
   :root {
-    --color-paper-bg: oklch(0.12 0.02 240);
-    --color-paper-card: oklch(0.16 0.025 240);
-    --color-paper-border: oklch(0.24 0.03 240);
-    --color-accent-amber: oklch(0.72 0.17 65);
-    --color-accent-cyan: oklch(0.70 0.15 220);
-    --color-text-main: oklch(0.96 0.01 240);
-    --color-text-muted: oklch(0.68 0.02 240);
-    
-    --radius-sm: 0.375rem;
-    --radius-md: 0.5rem;
-    --radius-lg: 0.75rem;
-    --radius-xl: 1rem;
-
-    --font-sans: 'Inter', sans-serif;
-    --font-display: 'Outfit', sans-serif;
+    --font-sans: 'Inter Tight', sans-serif;
+    --font-display: 'Space Grotesk', sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+    --font-signature: 'Caveat', cursive;
   }
 
   body {
-    background-color: var(--color-paper-bg);
-    color: var(--color-text-main);
+    background-color: #0A0A0A;
+    color: #F5F5F7;
     font-family: var(--font-sans);
-    overflow-x: clip;
+    overflow-x: hidden;
+    margin: 0;
+    padding: 0;
   }
 
   h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-display);
     letter-spacing: -0.02em;
-    font-style: normal; /* Hallmark Rule: Headings upright, no italic headers */
   }
 }
 
-/* Custom Utilities for Microinteractions & Focus Ring (UI/UX Pro Max Priority 1 & 2) */
 @layer utilities {
-  .focus-ring {
-    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-studio-950;
+  .font-signature {
+    font-family: 'Caveat', cursive;
   }
   
-  .glass-card {
-    background: rgba(21, 27, 36, 0.75);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+  .font-mono {
+    font-family: 'JetBrains Mono', monospace;
+  }
+  
+  .font-display {
+    font-family: 'Space Grotesk', sans-serif;
   }
 
-  .glass-card-hover {
-    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  .focus-ring {
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40 focus-visible:ring-offset-2 focus-visible:ring-offset-black;
   }
-  .glass-card-hover:hover {
-    background: rgba(28, 36, 48, 0.85);
-    border-color: rgba(56, 189, 248, 0.25);
-    transform: translateY(-2px);
-  }
+}
 
-  .min-touch-target {
-    min-width: 44px;
-    min-height: 44px;
+/* Custom Infinite Marquee Animation */
+@keyframes marquee {
+  0% {
+    transform: translateX(0%);
   }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-marquee {
+  animation: marquee 35s linear infinite;
+}
+
+.animate-marquee:hover {
+  animation-play-state: paused;
+}
+
+/* Steam Wisps Animation */
+@keyframes steamFloat1 {
+  0% {
+    transform: translateY(100%) scaleX(1) scaleY(0.8);
+    opacity: 0;
+  }
+  30% {
+    opacity: 0.4;
+  }
+  70% {
+    opacity: 0.3;
+  }
+  100% {
+    transform: translateY(-80%) scaleX(1.4) scaleY(1.3);
+    opacity: 0;
+  }
+}
+
+@keyframes steamFloat2 {
+  0% {
+    transform: translateY(100%) scaleX(0.8) scaleY(1);
+    opacity: 0;
+  }
+  40% {
+    opacity: 0.5;
+  }
+  80% {
+    opacity: 0.2;
+  }
+  100% {
+    transform: translateY(-90%) scaleX(1.6) scaleY(1.5);
+    opacity: 0;
+  }
+}
+
+.steam-wisp-1 {
+  position: absolute;
+  bottom: 0;
+  left: 30%;
+  width: 140px;
+  height: 250px;
+  background: radial-gradient(ellipse at center, rgba(255, 255, 255, 0.25) 0%, rgba(255, 255, 255, 0) 70%);
+  filter: blur(25px);
+  animation: steamFloat1 7s infinite ease-in-out;
+}
+
+.steam-wisp-2 {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: 180px;
+  height: 300px;
+  background: radial-gradient(ellipse at center, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0) 70%);
+  filter: blur(30px);
+  animation: steamFloat2 9s infinite ease-in-out 2s;
+}
+
+.steam-wisp-3 {
+  position: absolute;
+  bottom: 0;
+  left: 65%;
+  width: 120px;
+  height: 220px;
+  background: radial-gradient(ellipse at center, rgba(255, 255, 255, 0.22) 0%, rgba(255, 255, 255, 0) 70%);
+  filter: blur(20px);
+  animation: steamFloat1 8s infinite ease-in-out 4s;
 }
 
 /* Custom Scrollbar */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #090b0e;
+  background: #050505;
 }
 ::-webkit-scrollbar-thumb {
-  background: #1c2430;
-  border-radius: 4px;
+  background: #262626;
+  border-radius: 3px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #2a3647;
+  background: #404040;
 }
