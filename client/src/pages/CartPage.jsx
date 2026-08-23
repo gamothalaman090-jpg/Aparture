@@ -49,15 +49,7 @@ export default function CartPage() {
       navigate('/login');
       return;
     }
-
-    setCheckingOut(true);
-    setTimeout(() => {
-      setCheckingOut(false);
-      setOrderComplete(true);
-      clearCart();
-      soundFx.playSnapSound();
-      showToast('Reservation submitted successfully!', 'success');
-    }, 1500);
+    navigate('/checkout');
   };
 
   return (

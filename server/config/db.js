@@ -1,4 +1,8 @@
 import mongoose from 'mongoose';
+import dns from 'dns';
+
+// Force IPv4 DNS servers to fix SRV lookup failures on IPv6-default systems
+dns.setServers(['8.8.8.8', '8.8.4.4', '1.1.1.1']);
 
 export const connectDB = async () => {
   try {

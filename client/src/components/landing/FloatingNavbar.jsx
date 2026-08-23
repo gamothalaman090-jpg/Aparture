@@ -120,6 +120,17 @@ export default function FloatingNavbar() {
                   </div>
 
                   <Link
+                    to="/orders"
+                    onClick={() => {
+                      handleNavClick();
+                      setUserMenuOpen(false);
+                    }}
+                    className="block px-3 py-2 rounded-xl hover:bg-white/10 text-cyan-400 font-bold"
+                  >
+                    My Orders
+                  </Link>
+
+                  <Link
                     to="/catalog"
                     onClick={() => {
                       handleNavClick();

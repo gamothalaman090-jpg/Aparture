@@ -1,10 +1,14 @@
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
+import dns from 'dns';
 import User from '../models/User.js';
 import Category from '../models/Category.js';
 import Camera from '../models/Camera.js';
 import Booking from '../models/Booking.js';
 import Review from '../models/Review.js';
+
+// Force IPv4 DNS servers for Atlas SRV resolution
+dns.setServers(['8.8.8.8', '8.8.4.4', '1.1.1.1']);
 
 dotenv.config();
 

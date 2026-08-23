@@ -35,14 +35,14 @@ export default function LoginPage() {
   };
 
   const fillCustomerDemo = () => {
-    setEmail('customer@aperture.com');
-    setPassword('Customer123!');
+    setEmail('alex@creatives.com');
+    setPassword('customer123');
     soundFx.playClickSound();
   };
 
   const fillAdminDemo = () => {
     setEmail('admin@aperture.com');
-    setPassword('Admin123!');
+    setPassword('admin123');
     soundFx.playClickSound();
   };
 
