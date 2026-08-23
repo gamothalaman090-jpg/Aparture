@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Calculator, ShieldCheck, CheckCircle2, RotateCcw, AlertTriangle } from 'lucide-react';
 import { formatCurrency } from '../../utils/formatters.js';
+import { soundFx } from '../../services/audioService.js';
 
 const DURATION_DIALS = [1, 2, 3, 5, 7, 10, 14];
 
@@ -20,8 +21,18 @@ export default function TactileDialCalculator() {
   const depositAmount = selectedGear.deposit;
   const grandTotal = rentalFee + depositAmount;
 
+  const handleSelectGear = (gear) => {
+    setSelectedGear(gear);
+    soundFx.playClickSound();
+  };
+
+  const handleSelectDays = (days) => {
+    setRentalDays(days);
+    soundFx.playDialTickSound(days / 7 + 0.8);
+  };
+
   return (
-    <section id="tactile-calculator" className="py-20 bg-studio-900/50 border-b border-studio-850">
+    <section id="tactile-calculator" className="py-24 bg-[#050508] border-b border-white/10 relative">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Section Title */}
@@ -39,7 +50,7 @@ export default function TactileDialCalculator() {
         </div>
 
         {/* Tactical Dial Console Container */}
-        <div className="max-w-4xl mx-auto glass-card rounded-3xl p-6 sm:p-10 border border-studio-800 bg-studio-950/90 shadow-2xl">
+        <div className="max-w-4xl mx-auto glass-panel-cinema rounded-3xl p-6 sm:p-10 border border-white/10 shadow-2xl">
           
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
             
@@ -55,15 +66,15 @@ export default function TactileDialCalculator() {
                   {GEAR_OPTIONS.map((gear) => (
                     <button
                       key={gear.id}
-                      onClick={() => setSelectedGear(gear)}
+                      onClick={() => handleSelectGear(gear)}
                       className={`w-full p-3 rounded-xl border text-xs font-mono font-semibold transition-all focus-ring flex items-center justify-between ${
                         selectedGear.id === gear.id
-                          ? 'bg-studio-850 border-cyan-500 text-white shadow-studio-glow'
-                          : 'bg-studio-900 border-studio-800 text-slate-400 hover:text-white'
+                          ? 'bg-cyan-500/10 border-cyan-400 text-white shadow-[0_0_12px_rgba(6,182,212,0.3)]'
+                          : 'bg-white/5 border-white/10 text-slate-400 hover:text-white'
                       }`}
                     >
                       <span>{gear.name}</span>
-                      <span className="text-amberGold-400 font-bold">{formatCurrency(gear.dailyRate)}/day</span>
+                      <span className="text-amber-400 font-bold">{formatCurrency(gear.dailyRate)}/day</span>
                     </button>
                   ))}
                 </div>
@@ -73,17 +84,17 @@ export default function TactileDialCalculator() {
               <div>
                 <label className="block text-xs font-mono uppercase text-slate-300 mb-2 font-bold flex justify-between">
                   <span>STEP 2: RENTAL DAYS (SHUTTER DIAL)</span>
-                  <span className="text-amberGold-400 font-bold">{rentalDays} {rentalDays === 1 ? 'DAY' : 'DAYS'}</span>
+                  <span className="text-amber-400 font-bold">{rentalDays} {rentalDays === 1 ? 'DAY' : 'DAYS'}</span>
                 </label>
                 <div className="grid grid-cols-7 gap-2">
                   {DURATION_DIALS.map((d) => (
                     <button
                       key={d}
-                      onClick={() => setRentalDays(d)}
+                      onClick={() => handleSelectDays(d)}
                       className={`py-3 rounded-xl border text-xs font-mono font-bold transition-all focus-ring ${
                         rentalDays === d
-                          ? 'bg-amberGold-500 text-studio-950 shadow-amber-glow border-amberGold-500 scale-105'
-                          : 'bg-studio-900 border-studio-800 text-slate-300 hover:bg-studio-850'
+                          ? 'bg-amber-400 text-black shadow-[0_0_12px_rgba(245,158,11,0.5)] border-amber-400 scale-105'
+                          : 'bg-white/5 border-white/10 text-slate-300 hover:bg-white/10'
                       }`}
                     >
                       {d}D
@@ -95,9 +106,9 @@ export default function TactileDialCalculator() {
             </div>
 
             {/* Right Summary Ticket */}
-            <div className="lg:col-span-5 bg-studio-900 rounded-2xl p-6 border border-studio-800 space-y-4">
+            <div className="lg:col-span-5 bg-black/70 rounded-2xl p-6 border border-white/10 space-y-4">
               
-              <div className="border-b border-studio-800 pb-3 flex justify-between items-center text-xs font-mono">
+              <div className="border-b border-white/10 pb-3 flex justify-between items-center text-xs font-mono">
                 <span className="text-cyan-400 font-bold uppercase">CHECKOUT TICKET</span>
                 <span className="text-slate-500">REF #8821</span>
               </div>
@@ -118,7 +129,7 @@ export default function TactileDialCalculator() {
                   <span className="text-white font-bold">{rentalDays} Days</span>
                 </div>
 
-                <div className="flex justify-between text-slate-300 pt-2 border-t border-studio-800">
+                <div className="flex justify-between text-slate-300 pt-2 border-t border-white/10">
                   <span>Rental Subtotal:</span>
                   <span className="text-white font-bold">{formatCurrency(rentalFee)}</span>
                 </div>
@@ -132,15 +143,16 @@ export default function TactileDialCalculator() {
                 </div>
               </div>
 
-              <div className="pt-4 border-t border-studio-800">
+              <div className="pt-4 border-t border-white/10">
                 <span className="text-[11px] font-mono text-slate-400 block mb-1">TOTAL CHECKOUT DUE:</span>
-                <div className="text-3xl font-extrabold text-amberGold-400 font-mono tracking-tight mb-4">
+                <div className="text-3xl font-extrabold text-amber-400 font-mono tracking-tight mb-4">
                   {formatCurrency(grandTotal)}
                 </div>
 
                 <a
-                  href="#film-catalog"
-                  className="w-full py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold text-xs font-mono text-center block shadow-studio-glow focus-ring transition-all"
+                  href="#film-strip"
+                  onClick={() => soundFx.playClickSound()}
+                  className="w-full py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold text-xs font-mono uppercase tracking-widest text-center block shadow-[0_0_15px_rgba(6,182,212,0.4)] transition-all"
                 >
                   Reserve Equipment Now &rarr;
                 </a>

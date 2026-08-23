@@ -1,10 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
+
 import CustomCursor from '../components/landing/CustomCursor.jsx';
 import Preloader from '../components/landing/Preloader.jsx';
 import FloatingNavbar from '../components/landing/FloatingNavbar.jsx';
 import ScrollyHero from '../components/landing/ScrollyHero.jsx';
+import FilmStripCatalog from '../components/landing/FilmStripCatalog.jsx';
+import ModularRigBuilder from '../components/landing/ModularRigBuilder.jsx';
+import TactileDialCalculator from '../components/landing/TactileDialCalculator.jsx';
 import BentoFeatures from '../components/landing/BentoFeatures.jsx';
 import TestimonialsMarquee from '../components/landing/TestimonialsMarquee.jsx';
 import FinalCTA from '../components/landing/FinalCTA.jsx';
@@ -64,6 +68,9 @@ export default function HomePage() {
 
       <main>
         <ScrollyHero imagesLoaded={isLoaded} imagesList={imagesList} />
+        <FilmStripCatalog />
+        <ModularRigBuilder />
+        <TactileDialCalculator />
         <BentoFeatures />
         <TestimonialsMarquee />
         <FinalCTA />

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { Camera, Disc, Tv, ShieldCheck, Plus, Check, RotateCcw, Wrench } from 'lucide-react';
+import { Camera, Disc, Tv, ShieldCheck, Plus, Check, RotateCcw, Wrench, PackageCheck } from 'lucide-react';
 import { formatCurrency } from '../../utils/formatters.js';
+import { soundFx } from '../../services/audioService.js';
 
 const BODIES = [
   { id: 'fx3', name: 'Sony FX3 Cinema Body', rate: 110, deposit: 500, weight: '715g', mount: 'Sony E' },
@@ -36,8 +37,28 @@ export default function ModularRigBuilder() {
   const totalDailyRate = selectedBody.rate + selectedLens.rate + selectedMonitor.rate + selectedGimbal.rate;
   const totalDeposit = selectedBody.deposit + selectedLens.deposit + selectedMonitor.deposit + selectedGimbal.deposit;
 
+  const handleSelectBody = (item) => {
+    setSelectedBody(item);
+    soundFx.playSnapSound();
+  };
+
+  const handleSelectLens = (item) => {
+    setSelectedLens(item);
+    soundFx.playSnapSound();
+  };
+
+  const handleSelectMonitor = (item) => {
+    setSelectedMonitor(item);
+    soundFx.playSnapSound();
+  };
+
+  const handleSelectGimbal = (item) => {
+    setSelectedGimbal(item);
+    soundFx.playSnapSound();
+  };
+
   return (
-    <section id="rig-builder" className="py-20 bg-studio-900/50 border-b border-studio-850">
+    <section id="rig-builder" className="py-24 bg-[#0A0A0E] border-b border-white/10 relative">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Section Header */}
@@ -57,7 +78,7 @@ export default function ModularRigBuilder() {
         </div>
 
         {/* Tactical Pelican Flight Case Layout */}
-        <div className="glass-card rounded-3xl p-6 sm:p-8 border border-studio-800 shadow-2xl bg-studio-950/90">
+        <div className="glass-panel-cinema rounded-3xl p-6 sm:p-8 border border-white/10 shadow-2xl">
           
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
             
@@ -66,27 +87,27 @@ export default function ModularRigBuilder() {
               
               {/* Module 1: Camera Body */}
               <div>
-                <span className="text-xs font-mono text-amberGold-400 font-bold uppercase block mb-2">
+                <span className="text-xs font-mono text-amber-400 font-bold uppercase block mb-2">
                   MODULE A: CAMERA BODY
                 </span>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   {BODIES.map((body) => (
                     <button
                       key={body.id}
-                      onClick={() => setSelectedBody(body)}
+                      onClick={() => handleSelectBody(body)}
                       className={`p-3.5 rounded-xl border text-left transition-all focus-ring ${
                         selectedBody.id === body.id
-                          ? 'bg-studio-850 border-cyan-500 text-white shadow-studio-glow'
-                          : 'bg-studio-900 border-studio-800 text-slate-300 hover:border-studio-700'
+                          ? 'bg-cyan-500/10 border-cyan-400 text-white shadow-[0_0_12px_rgba(6,182,212,0.3)]'
+                          : 'bg-white/5 border-white/10 text-slate-300 hover:border-white/20'
                       }`}
                     >
                       <div className="flex items-center justify-between text-xs font-mono font-bold text-white mb-1">
                         <span>{body.name}</span>
                         {selectedBody.id === body.id && <Check className="w-3.5 h-3.5 text-cyan-400" />}
                       </div>
-                      <div className="text-[11px] font-mono text-slate-400 flex justify-between pt-2 border-t border-studio-800">
+                      <div className="text-[11px] font-mono text-slate-400 flex justify-between pt-2 border-t border-white/10">
                         <span>{body.weight}</span>
-                        <span className="text-amberGold-400 font-bold">{formatCurrency(body.rate)}/d</span>
+                        <span className="text-amber-400 font-bold">{formatCurrency(body.rate)}/d</span>
                       </div>
                     </button>
                   ))}
@@ -95,130 +116,149 @@ export default function ModularRigBuilder() {
 
               {/* Module 2: Optical Lens */}
               <div>
-                <span className="text-xs font-mono text-amberGold-400 font-bold uppercase block mb-2">
+                <span className="text-xs font-mono text-amber-400 font-bold uppercase block mb-2">
                   MODULE B: CINEMA LENS
                 </span>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   {LENSES.map((lens) => (
                     <button
                       key={lens.id}
-                      onClick={() => setSelectedLens(lens)}
+                      onClick={() => handleSelectLens(lens)}
                       className={`p-3.5 rounded-xl border text-left transition-all focus-ring ${
                         selectedLens.id === lens.id
-                          ? 'bg-studio-850 border-cyan-500 text-white shadow-studio-glow'
-                          : 'bg-studio-900 border-studio-800 text-slate-300 hover:border-studio-700'
+                          ? 'bg-cyan-500/10 border-cyan-400 text-white shadow-[0_0_12px_rgba(6,182,212,0.3)]'
+                          : 'bg-white/5 border-white/10 text-slate-300 hover:border-white/20'
                       }`}
                     >
                       <div className="flex items-center justify-between text-xs font-mono font-bold text-white mb-1">
-                        <span className="truncate">{lens.name}</span>
-                        {selectedLens.id === lens.id && <Check className="w-3.5 h-3.5 text-cyan-400 flex-shrink-0" />}
+                        <span>{lens.name}</span>
+                        {selectedLens.id === lens.id && <Check className="w-3.5 h-3.5 text-cyan-400" />}
                       </div>
-                      <div className="text-[11px] font-mono text-slate-400 flex justify-between pt-2 border-t border-studio-800">
+                      <div className="text-[11px] font-mono text-slate-400 flex justify-between pt-2 border-t border-white/10">
                         <span>{lens.weight}</span>
-                        <span className="text-amberGold-400 font-bold">{formatCurrency(lens.rate)}/d</span>
+                        <span className="text-amber-400 font-bold">{formatCurrency(lens.rate)}/d</span>
                       </div>
                     </button>
                   ))}
                 </div>
               </div>
 
-              {/* Module 3: Monitor & Gimbal */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                
-                <div>
-                  <span className="text-xs font-mono text-amberGold-400 font-bold uppercase block mb-2">
-                    MODULE C: MONITOR
-                  </span>
-                  <div className="space-y-2">
-                    {MONITORS.map((mon) => (
-                      <button
-                        key={mon.id}
-                        onClick={() => setSelectedMonitor(mon)}
-                        className={`w-full p-2.5 rounded-xl border text-left text-xs font-mono transition-all focus-ring flex items-center justify-between ${
-                          selectedMonitor.id === mon.id
-                            ? 'bg-studio-850 border-cyan-500 text-white'
-                            : 'bg-studio-900 border-studio-800 text-slate-400'
-                        }`}
-                      >
-                        <span className="truncate">{mon.name}</span>
-                        <span className="text-amberGold-400 font-bold ml-2">+{formatCurrency(mon.rate)}</span>
-                      </button>
-                    ))}
-                  </div>
+              {/* Module 3: Field Monitor */}
+              <div>
+                <span className="text-xs font-mono text-amber-400 font-bold uppercase block mb-2">
+                  MODULE C: FIELD MONITOR & RECORDER
+                </span>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  {MONITORS.map((mon) => (
+                    <button
+                      key={mon.id}
+                      onClick={() => handleSelectMonitor(mon)}
+                      className={`p-3.5 rounded-xl border text-left transition-all focus-ring ${
+                        selectedMonitor.id === mon.id
+                          ? 'bg-cyan-500/10 border-cyan-400 text-white shadow-[0_0_12px_rgba(6,182,212,0.3)]'
+                          : 'bg-white/5 border-white/10 text-slate-300 hover:border-white/20'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between text-xs font-mono font-bold text-white mb-1">
+                        <span>{mon.name}</span>
+                        {selectedMonitor.id === mon.id && <Check className="w-3.5 h-3.5 text-cyan-400" />}
+                      </div>
+                      <div className="text-[11px] font-mono text-slate-400 flex justify-between pt-2 border-t border-white/10">
+                        <span>{mon.weight}</span>
+                        <span className="text-amber-400 font-bold">{formatCurrency(mon.rate)}/d</span>
+                      </div>
+                    </button>
+                  ))}
                 </div>
+              </div>
 
-                <div>
-                  <span className="text-xs font-mono text-amberGold-400 font-bold uppercase block mb-2">
-                    MODULE D: STABILIZER
-                  </span>
-                  <div className="space-y-2">
-                    {GIMBALS.map((gim) => (
-                      <button
-                        key={gim.id}
-                        onClick={() => setSelectedGimbal(gim)}
-                        className={`w-full p-2.5 rounded-xl border text-left text-xs font-mono transition-all focus-ring flex items-center justify-between ${
-                          selectedGimbal.id === gim.id
-                            ? 'bg-studio-850 border-cyan-500 text-white'
-                            : 'bg-studio-900 border-studio-800 text-slate-400'
-                        }`}
-                      >
-                        <span className="truncate">{gim.name}</span>
-                        <span className="text-amberGold-400 font-bold ml-2">+{formatCurrency(gim.rate)}</span>
-                      </button>
-                    ))}
-                  </div>
+              {/* Module 4: Support / Gimbal */}
+              <div>
+                <span className="text-xs font-mono text-amber-400 font-bold uppercase block mb-2">
+                  MODULE D: RIG STABILIZER & SUPPORT
+                </span>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  {GIMBALS.map((gimbal) => (
+                    <button
+                      key={gimbal.id}
+                      onClick={() => handleSelectGimbal(gimbal)}
+                      className={`p-3.5 rounded-xl border text-left transition-all focus-ring ${
+                        selectedGimbal.id === gimbal.id
+                          ? 'bg-cyan-500/10 border-cyan-400 text-white shadow-[0_0_12px_rgba(6,182,212,0.3)]'
+                          : 'bg-white/5 border-white/10 text-slate-300 hover:border-white/20'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between text-xs font-mono font-bold text-white mb-1">
+                        <span>{gimbal.name}</span>
+                        {selectedGimbal.id === gimbal.id && <Check className="w-3.5 h-3.5 text-cyan-400" />}
+                      </div>
+                      <div className="text-[11px] font-mono text-slate-400 flex justify-between pt-2 border-t border-white/10">
+                        <span>{gimbal.weight}</span>
+                        <span className="text-amber-400 font-bold">{formatCurrency(gimbal.rate)}/d</span>
+                      </div>
+                    </button>
+                  ))}
                 </div>
-
               </div>
 
             </div>
 
-            {/* Right Summary Console */}
-            <div className="lg:col-span-4 bg-studio-900 rounded-2xl p-6 border border-studio-800 flex flex-col justify-between">
-              <div>
-                <div className="border-b border-studio-800 pb-3 mb-4 flex items-center justify-between">
-                  <span className="text-xs font-mono text-cyan-400 font-bold uppercase">RIG SPECIFICATIONS</span>
-                  <span className="text-[10px] font-mono text-slate-400">FLIGHT CASE #1</span>
+            {/* Right Live Flight Case Summary */}
+            <div className="lg:col-span-4 bg-black/60 rounded-2xl p-6 border border-white/10 space-y-6 flex flex-col justify-between">
+              
+              <div className="space-y-4">
+                <div className="border-b border-white/10 pb-3 flex items-center justify-between">
+                  <span className="text-xs font-mono text-cyan-400 font-bold uppercase tracking-wider flex items-center space-x-1.5">
+                    <PackageCheck className="w-4 h-4" />
+                    <span>FLIGHT CASE MANIFEST</span>
+                  </span>
+                  <span className="text-[10px] font-mono bg-cyan-500/20 text-cyan-400 px-2 py-0.5 rounded border border-cyan-500/30">
+                    READY
+                  </span>
                 </div>
 
-                <div className="space-y-2.5 text-xs font-mono">
-                  <div className="p-2.5 rounded-lg bg-studio-950 border border-studio-800 flex justify-between">
+                <div className="space-y-3 font-mono text-xs text-slate-300">
+                  <div className="flex justify-between items-center bg-white/5 p-2.5 rounded-lg border border-white/5">
                     <span className="text-slate-400">Body:</span>
-                    <span className="text-white font-bold truncate max-w-[130px]">{selectedBody.name}</span>
+                    <span className="font-bold text-white">{selectedBody.name}</span>
                   </div>
-
-                  <div className="p-2.5 rounded-lg bg-studio-950 border border-studio-800 flex justify-between">
+                  <div className="flex justify-between items-center bg-white/5 p-2.5 rounded-lg border border-white/5">
                     <span className="text-slate-400">Lens:</span>
-                    <span className="text-white font-bold truncate max-w-[130px]">{selectedLens.name}</span>
+                    <span className="font-bold text-white">{selectedLens.name}</span>
                   </div>
-
-                  <div className="p-2.5 rounded-lg bg-studio-950 border border-studio-800 flex justify-between">
+                  <div className="flex justify-between items-center bg-white/5 p-2.5 rounded-lg border border-white/5">
                     <span className="text-slate-400">Monitor:</span>
-                    <span className="text-white font-bold truncate max-w-[130px]">{selectedMonitor.name}</span>
+                    <span className="font-bold text-white">{selectedMonitor.name}</span>
                   </div>
-
-                  <div className="p-2.5 rounded-lg bg-studio-950 border border-studio-800 flex justify-between">
-                    <span className="text-slate-400">Gimbal:</span>
-                    <span className="text-white font-bold truncate max-w-[130px]">{selectedGimbal.name}</span>
+                  <div className="flex justify-between items-center bg-white/5 p-2.5 rounded-lg border border-white/5">
+                    <span className="text-slate-400">Support:</span>
+                    <span className="font-bold text-white">{selectedGimbal.name}</span>
                   </div>
                 </div>
               </div>
 
               {/* Total Box */}
-              <div className="mt-6 pt-4 border-t border-studio-800">
-                <div className="flex justify-between items-center text-xs font-mono text-slate-400 mb-1">
-                  <span>Combined Daily Rate:</span>
-                  <span className="text-amberGold-400 font-bold text-base">{formatCurrency(totalDailyRate)} / day</span>
+              <div className="pt-4 border-t border-white/10 space-y-4">
+                <div className="flex justify-between items-baseline font-mono">
+                  <span className="text-xs uppercase text-slate-400">Daily Flight Rate:</span>
+                  <span className="text-2xl font-extrabold text-amber-400">
+                    {formatCurrency(totalDailyRate)}
+                    <span className="text-xs text-slate-400 font-normal">/day</span>
+                  </span>
                 </div>
 
-                <div className="flex justify-between items-center text-xs font-mono text-slate-400 mb-4">
-                  <span>Required Deposit Hold:</span>
-                  <span className="text-cyan-400 font-bold">{formatCurrency(totalDeposit)}</span>
+                <div className="flex justify-between items-center text-[11px] font-mono text-slate-400">
+                  <span>Refundable Hold:</span>
+                  <span className="text-slate-200 font-bold">{formatCurrency(totalDeposit)}</span>
                 </div>
 
-                <button className="w-full py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold text-xs font-mono shadow-studio-glow focus-ring transition-all">
-                  Reserve Custom Package &rarr;
-                </button>
+                <a
+                  href="#tactile-calculator"
+                  onClick={() => soundFx.playClickSound()}
+                  className="w-full py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold text-xs font-mono uppercase tracking-widest flex items-center justify-center space-x-2 shadow-[0_0_15px_rgba(6,182,212,0.4)]"
+                >
+                  <span>LOCK IN FLIGHT CASE</span>
+                </a>
               </div>
 
             </div>

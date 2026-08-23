@@ -10,10 +10,16 @@
     --font-display: 'Space Grotesk', sans-serif;
     --font-mono: 'JetBrains Mono', monospace;
     --font-signature: 'Caveat', cursive;
+
+    /* Emil Kowalski & Apple Design Easing Tokens */
+    --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+    --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+    --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+    --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
   }
 
   body {
-    background-color: #0A0A0A;
+    background-color: #050505;
     color: #F5F5F7;
     font-family: var(--font-sans);
     overflow-x: hidden;
@@ -21,9 +27,25 @@
     padding: 0;
   }
 
+  /* Hide default OS cursor on fine pointer devices when custom cursor is active */
+  @media (hover: hover) and (pointer: fine) {
+    html, body, button, a, input, select, textarea, [role="button"], label {
+      cursor: none !important;
+    }
+  }
+
   h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-display);
-    letter-spacing: -0.02em;
+    letter-spacing: -0.025em;
+  }
+
+  /* Emil Kowalski Principle: Buttons & Pressable elements must feel responsive */
+  button, .btn, a, [role="button"] {
+    transition: transform 160ms var(--ease-out), background-color 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
+  }
+
+  button:active, .btn:active, [role="button"]:active {
+    transform: scale(0.97);
   }
 }
 
@@ -34,6 +56,7 @@
   
   .font-mono {
     font-family: 'JetBrains Mono', monospace;
+    letter-spacing: 0.04em;
   }
   
   .font-display {
@@ -41,7 +64,31 @@
   }
 
   .focus-ring {
-    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40 focus-visible:ring-offset-2 focus-visible:ring-offset-black;
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500/50 focus-visible:ring-offset-2 focus-visible:ring-offset-black;
+  }
+
+  /* Glassmorphism & Cinema Overlay Materials */
+  .glass-card {
+    background: rgba(10, 10, 10, 0.75);
+    backdrop-filter: blur(20px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  .glass-panel-cinema {
+    background: linear-gradient(135deg, rgba(20, 20, 25, 0.8) 0%, rgba(10, 10, 12, 0.9) 100%);
+    backdrop-filter: blur(24px) saturate(190%);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  }
+}
+
+/* Touch device safety for hover effects */
+@media (hover: hover) and (pointer: fine) {
+  .hover-elevate {
+    transition: transform 200ms var(--ease-out);
+  }
+  .hover-elevate:hover {
+    transform: translateY(-2px);
   }
 }
 
