@@ -91,7 +91,41 @@ const FEATURED_CAMERAS = [
 ];
 
 export default function FeaturedGearGrid() {
+  const [cameras, setCameras] = React.useState(FEATURED_CAMERAS);
+
   useEffect(() => {
+    // Fetch live cameras from backend API
+    const fetchLiveCameras = async () => {
+      try {
+        const res = await fetch('/api/cameras');
+        const data = await res.json();
+        const items = Array.isArray(data) ? data : data.success ? data.data : null;
+        if (items && items.length > 0) {
+          const formatted = items.map((c) => ({
+            id: c._id || c.id,
+            name: c.name,
+            brand: c.brand || 'APERTURE',
+            category: c.category?.name || 'Cinema Gear',
+            image: c.imageUrl || c.imageUrls?.[0] || '/images/cinema_rig_onset.jpg',
+            dailyRate: c.dailyRate,
+            depositAmount: c.depositAmount,
+            condition: c.condition || 'new',
+            rating: c.averageRating || 5.0,
+            reviewCount: c.reviewCount || 8,
+            specs: Array.isArray(c.specs)
+              ? { feature1: c.specs[0] || 'High Dynamic Range', feature2: c.specs[1] || 'Pro Capture' }
+              : c.specs || { sensor: 'Full-Frame', resolution: '4K/8K' },
+            badge: c.brand ? `${c.brand.toUpperCase()} FLEET` : 'PRO GEAR',
+          }));
+          setCameras(formatted);
+        }
+      } catch (err) {
+        console.warn('Using fallback featured cameras');
+      }
+    };
+
+    fetchLiveCameras();
+
     // Anime.js entrance staggered for gear cards
     anime({
       targets: '.gear-card',
@@ -129,7 +163,7 @@ export default function FeaturedGearGrid() {
 
         {/* Gear Cards Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {FEATURED_CAMERAS.map((item) => (
+          {cameras.map((item) => (
             <div
               key={item.id}
               className="gear-card opacity-0 glass-card rounded-2xl overflow-hidden border border-studio-800 flex flex-col justify-between hover:border-cyan-500/40 transition-all duration-300 hover:shadow-studio-glow group"

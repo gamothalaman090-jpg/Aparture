@@ -62,9 +62,9 @@ export default function FloatingNavbar() {
 
         {/* Navigation Links */}
         <div className="hidden md:flex items-center gap-5 text-[11px] font-mono uppercase tracking-[0.15em] text-slate-300">
-          <Link to="/catalog" onClick={handleNavClick} className="hover:text-cyan-400 transition-colors flex items-center space-x-1">
+          <Link to="/catalog" onClick={handleNavClick} className="text-cyan-400 font-bold hover:text-white transition-colors flex items-center space-x-1.5 bg-cyan-500/10 px-3 py-1 rounded-full border border-cyan-500/30">
             <Film className="w-3.5 h-3.5 text-cyan-400" />
-            <span>Catalog</span>
+            <span>Shop Gear</span>
           </Link>
           <a href="/#film-strip" onClick={handleNavClick} className="hover:text-cyan-400 transition-colors">
             Fleet
@@ -78,7 +78,17 @@ export default function FloatingNavbar() {
         </div>
 
         {/* Action Group: Cart & Auth */}
-        <div className="flex items-center space-x-3">
+        <div className="flex items-center space-x-2.5">
+          
+          {/* Shop Direct Button for Mobile & Quick Access */}
+          <Link
+            to="/catalog"
+            onClick={handleNavClick}
+            className="md:hidden px-3 py-1.5 text-[10px] font-mono font-bold uppercase tracking-wider rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 flex items-center space-x-1"
+          >
+            <Film className="w-3 h-3" />
+            <span>Shop</span>
+          </Link>
           
           {/* Cart Counter Badge */}
           <Link

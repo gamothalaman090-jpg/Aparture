@@ -15,6 +15,11 @@ import OrderHistoryPage from './pages/OrderHistoryPage.jsx';
 import LoginPage from './pages/LoginPage.jsx';
 import RegisterPage from './pages/RegisterPage.jsx';
 
+import AdminDashboardPage from './pages/admin/AdminDashboardPage.jsx';
+import AdminInventoryPage from './pages/admin/AdminInventoryPage.jsx';
+import AdminOrdersPage from './pages/admin/AdminOrdersPage.jsx';
+import AdminCategoriesPage from './pages/admin/AdminCategoriesPage.jsx';
+
 export default function App() {
   return (
     <BrowserRouter>
@@ -33,6 +38,12 @@ export default function App() {
               <Route path="/orders" element={<OrderHistoryPage />} />
               <Route path="/login" element={<LoginPage />} />
               <Route path="/register" element={<RegisterPage />} />
+
+              {/* Admin Command Center Routes */}
+              <Route path="/admin" element={<AdminDashboardPage />} />
+              <Route path="/admin/inventory" element={<AdminInventoryPage />} />
+              <Route path="/admin/orders" element={<AdminOrdersPage />} />
+              <Route path="/admin/categories" element={<AdminCategoriesPage />} />
             </Routes>
           </CartProvider>
         </AuthProvider>

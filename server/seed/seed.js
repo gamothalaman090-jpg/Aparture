@@ -76,9 +76,15 @@ const seedData = async () => {
       imageUrl: 'https://images.unsplash.com/photo-1508614589041-895b88991e3e?auto=format&fit=crop&w=800&q=80',
     });
 
+    const catAccessories = await Category.create({
+      name: 'Accessories & Rigging',
+      description: 'Wireless follow focus units, HDR monitors, V-mount power stations, and matte boxes.',
+      imageUrl: 'https://images.unsplash.com/photo-1512790182412-b19e6d62bc39?auto=format&fit=crop&w=800&q=80',
+    });
+
     console.log('Seeded Categories.');
 
-    // 3. Create Cameras
+    // 3. Create Cameras & Gear Items
     const camera1 = await Camera.create({
       name: 'Sony FX3 Cinema Camera',
       brand: 'Sony',
@@ -93,10 +99,7 @@ const seedData = async () => {
         isoRange: '80 - 409,600',
         fps: '120 fps',
       },
-      imageUrls: [
-        'https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&w=1200&q=80',
-        'https://images.unsplash.com/photo-1502920917128-1aa500764cbd?auto=format&fit=crop&w=1200&q=80'
-      ],
+      imageUrls: ['/images/cinema_rig_onset.jpg'],
       dailyRate: 110,
       depositAmount: 500,
       stockQuantity: 3,
@@ -119,10 +122,7 @@ const seedData = async () => {
         isoRange: '100 - 51,200',
         fps: '20 fps',
       },
-      imageUrls: [
-        'https://images.unsplash.com/photo-1519638399535-1b036603ac77?auto=format&fit=crop&w=1200&q=80',
-        'https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?auto=format&fit=crop&w=1200&q=80'
-      ],
+      imageUrls: ['/images/wireless_follow_focus.jpg'],
       dailyRate: 125,
       depositAmount: 600,
       stockQuantity: 2,
@@ -145,10 +145,7 @@ const seedData = async () => {
         isoRange: '800 Base ISO',
         fps: '40 fps @ 6K',
       },
-      imageUrls: [
-        'https://images.unsplash.com/photo-1492691527719-9d1e07e534b4?auto=format&fit=crop&w=1200&q=80',
-        'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=1200&q=80'
-      ],
+      imageUrls: ['https://images.unsplash.com/photo-1492691527719-9d1e07e534b4?auto=format&fit=crop&w=1200&q=80'],
       dailyRate: 210,
       depositAmount: 1200,
       stockQuantity: 1,
@@ -171,9 +168,7 @@ const seedData = async () => {
         isoRange: 'N/A',
         fps: 'N/A',
       },
-      imageUrls: [
-        'https://images.unsplash.com/photo-1617005082133-548c4dd27f35?auto=format&fit=crop&w=1200&q=80'
-      ],
+      imageUrls: ['https://images.unsplash.com/photo-1617005082133-548c4dd27f35?auto=format&fit=crop&w=1200&q=80'],
       dailyRate: 45,
       depositAmount: 250,
       stockQuantity: 5,
@@ -196,9 +191,7 @@ const seedData = async () => {
         isoRange: '100 - 6,400',
         fps: '120 fps',
       },
-      imageUrls: [
-        'https://images.unsplash.com/photo-1508614589041-895b88991e3e?auto=format&fit=crop&w=1200&q=80'
-      ],
+      imageUrls: ['https://images.unsplash.com/photo-1508614589041-895b88991e3e?auto=format&fit=crop&w=1200&q=80'],
       dailyRate: 150,
       depositAmount: 700,
       stockQuantity: 2,
@@ -207,7 +200,99 @@ const seedData = async () => {
       bookedRanges: [],
     });
 
-    console.log('Seeded 5 Gear Items.');
+    const camera6 = await Camera.create({
+      name: 'ARRI ALEXA Mini LF Production Package',
+      brand: 'ARRI',
+      categoryId: catCinema._id,
+      description: 'Large-format ALEXA sensor in a compact body. Delivers natural skin tones, high dynamic range, and ARRIRAW 4.5K recording.',
+      specs: {
+        sensor: 'Large Format ALEXA LF CMOS',
+        resolution: '4.5K Open Gate',
+        mount: 'LPL / PL Mount',
+        videoResolution: '4.5K ARRIRAW @ 60fps / ProRes 4444 XQ',
+        weight: '2.6 kg',
+        isoRange: '800 Native ISO',
+        fps: '60 fps',
+      },
+      imageUrls: ['https://images.unsplash.com/photo-1512790182412-b19e6d62bc39?auto=format&fit=crop&w=1200&q=80'],
+      dailyRate: 450,
+      depositAmount: 2500,
+      stockQuantity: 1,
+      condition: 'new',
+      isActive: true,
+      bookedRanges: [],
+    });
+
+    const camera7 = await Camera.create({
+      name: 'RED V-RAPTOR 8K VV Cinema Package',
+      brand: 'RED Digital Cinema',
+      categoryId: catCinema._id,
+      description: 'Multi-format 8K Vista Vision flagship camera capable of 8K 120fps recording with 17+ stops of dynamic range.',
+      specs: {
+        sensor: 'V-RAPTOR 35.4MP CMOS',
+        resolution: '8192 x 4320',
+        mount: 'Canon RF Mount',
+        videoResolution: '8K @ 120fps / 4K @ 240fps REDCODE RAW',
+        weight: '1.8 kg',
+        isoRange: '800 Native ISO',
+        fps: '120 fps @ 8K',
+      },
+      imageUrls: ['https://images.unsplash.com/photo-1492691527719-9d1e07e534b4?auto=format&fit=crop&w=1200&q=80'],
+      dailyRate: 380,
+      depositAmount: 2000,
+      stockQuantity: 1,
+      condition: 'new',
+      isActive: true,
+      bookedRanges: [],
+    });
+
+    const camera8 = await Camera.create({
+      name: 'Cooke Anamorphic /i Full Frame 50mm T2.3 Prime',
+      brand: 'Cooke',
+      categoryId: catLenses._id,
+      description: 'Iconic Cooke Look in full-frame 1.8x anamorphic format. Offers gorgeous oval bokeh and controlled flare.',
+      specs: {
+        sensor: 'Full Frame Anamorphic',
+        resolution: 'N/A',
+        mount: 'PL Mount',
+        videoResolution: '1.8x Squeeze Factor',
+        weight: '2.4 kg',
+        isoRange: 'T2.3 - T22',
+        fps: 'N/A',
+      },
+      imageUrls: ['https://images.unsplash.com/photo-1617005082133-548c4dd27f35?auto=format&fit=crop&w=1200&q=80'],
+      dailyRate: 180,
+      depositAmount: 900,
+      stockQuantity: 2,
+      condition: 'good',
+      isActive: true,
+      bookedRanges: [],
+    });
+
+    const camera9 = await Camera.create({
+      name: 'Tilta Nucleus-M Wireless Follow Focus Kit',
+      brand: 'Tilta',
+      categoryId: catAccessories._id,
+      description: '3-channel wireless lens control system for focus, iris, and zoom with zero-latency hand unit controls.',
+      specs: {
+        sensor: 'N/A',
+        resolution: 'N/A',
+        mount: '15mm / 19mm Rod Clamp',
+        videoResolution: '1000 ft Wireless Transmission',
+        weight: '850 g',
+        isoRange: 'N/A',
+        fps: 'N/A',
+      },
+      imageUrls: ['/images/wireless_follow_focus.jpg'],
+      dailyRate: 65,
+      depositAmount: 300,
+      stockQuantity: 4,
+      condition: 'new',
+      isActive: true,
+      bookedRanges: [],
+    });
+
+    console.log('Seeded 9 Master Gear Items.');
 
     // 4. Create Sample Past & Active Bookings
     const today = new Date();

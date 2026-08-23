@@ -31,10 +31,15 @@ export default function CatalogPage() {
         api.get('/cameras'),
         api.get('/categories'),
       ]);
-      if (camRes.success && camRes.data) {
+      if (Array.isArray(camRes)) {
+        setCameras(camRes);
+      } else if (camRes.success && Array.isArray(camRes.data)) {
         setCameras(camRes.data);
       }
-      if (catRes.success && catRes.data) {
+
+      if (Array.isArray(catRes)) {
+        setCategories(catRes);
+      } else if (catRes.success && Array.isArray(catRes.data)) {
         setCategories(catRes.data);
       }
     } catch {
