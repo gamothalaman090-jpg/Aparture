@@ -5,6 +5,10 @@ import { RentableItem } from './RentableItem.js';
  * Extends RentableItem with camera specifications, availability checks, and condition formatting.
  */
 export class CameraItem extends RentableItem {
+  // Hard Private Encapsulated Fields (Native ES2022)
+  #bookedRanges = [];
+  #stockQuantity = 1;
+
   constructor(data = {}) {
     super(data);
     
@@ -17,14 +21,35 @@ export class CameraItem extends RentableItem {
       this.specs = [];
     }
 
-    this.stockQuantity = Number(data.stockQuantity) || 1;
-    this.bookedRanges = Array.isArray(data.bookedRanges) ? data.bookedRanges : [];
+    this.#stockQuantity = Math.max(0, Number(data.stockQuantity) || 1);
+    this.#bookedRanges = Array.isArray(data.bookedRanges) ? data.bookedRanges : [];
     this.averageRating = Number(data.averageRating) || 5.0;
     this.reviewCount = Number(data.reviewCount) || 0;
     this.reviews = Array.isArray(data.reviews) ? data.reviews : [];
   }
 
-  // FR15: OOP method to check date availability overlap using array .some()
+  // Getters & Setters for Private Encapsulated State
+  get bookedRanges() {
+    return [...this.#bookedRanges];
+  }
+
+  set bookedRanges(newRanges) {
+    if (!Array.isArray(newRanges)) {
+      throw new Error("bookedRanges must be an array.");
+    }
+    this.#bookedRanges = [...newRanges];
+  }
+
+  get stockQuantity() {
+    return this.#stockQuantity;
+  }
+
+  set stockQuantity(value) {
+    if (value < 0) throw new Error("Stock quantity cannot be negative.");
+    this.#stockQuantity = Math.floor(Number(value));
+  }
+
+  // FR15: OOP method to check date availability overlap using array .some() on private #bookedRanges
   isAvailableForRange(startDate, endDate) {
     if (!this.isActive || this.stockQuantity < 1) return false;
     if (!startDate || !endDate) return true;
@@ -32,7 +57,7 @@ export class CameraItem extends RentableItem {
     const reqStart = new Date(startDate).getTime();
     const reqEnd = new Date(endDate).getTime();
 
-    const hasOverlap = this.bookedRanges.some((range) => {
+    const hasOverlap = this.#bookedRanges.some((range) => {
       const existingStart = new Date(range.startDate).getTime();
       const existingEnd = new Date(range.endDate).getTime();
       return reqStart <= existingEnd && reqEnd >= existingStart;
