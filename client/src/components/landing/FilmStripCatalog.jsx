@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { Camera, Film, Star, ShieldCheck, ArrowRight, Layers } from 'lucide-react';
 import { formatCurrency } from '../../utils/formatters.js';
 import { soundFx } from '../../services/audioService.js';
@@ -196,13 +197,14 @@ export default function FilmStripCatalog() {
                   </div>
                 </div>
 
-                <a
-                  href="#tactile-calculator"
+                <Link
+                  to={`/catalog/${item.id}`}
+                  onClick={() => soundFx.playClickSound()}
                   className="px-4 py-2 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-black font-bold text-xs font-mono uppercase tracking-wider flex items-center space-x-1 shadow-[0_0_10px_rgba(6,182,212,0.4)]"
                 >
-                  <span>Reserve</span>
+                  <span>View & Reserve</span>
                   <ArrowRight className="w-3.5 h-3.5" />
-                </a>
+                </Link>
               </div>
             </div>
           ))}

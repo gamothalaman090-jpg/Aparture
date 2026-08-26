@@ -75,16 +75,25 @@ Open your browser to `http://localhost:3000`.
 
 ---
 
-## 🧠 Object-Oriented Programming (OOP) Architecture
+## 🧠 Object-Oriented Programming (OOP) Architecture & Product Page Engine
 
-The application enforces strict Object-Oriented Programming principles within the domain business logic layer (`server/domain/`), ensuring clean separation of concerns, code reusability, and encapsulation.
+The application enforces strict Object-Oriented Programming (OOP) principles and functional modularity across both the backend (`server/domain/`) and frontend (`client/src/domain/`), ensuring clean separation of concerns, code reusability, polymorphic capabilities, and domain encapsulation.
 
 ```
 server/domain/
-├── RentableItem.js        # Base Abstract Class (Inheritance)
-├── CameraDomain.js        # Subclass extending RentableItem (Inheritance & Encapsulation)
-├── UserDomain.js          # Abstract User Base Class & Derived Classes (Polymorphism)
-└── BookingCalculator.js   # Pricing & Fee Calculation Engine (Encapsulation)
+├── RentableItem.js        # Backend Base Abstract Class (Inheritance)
+├── CameraDomain.js        # Backend Subclass extending RentableItem (Inheritance & Encapsulation)
+├── UserDomain.js          # User Abstract Base & Derived Classes (Polymorphism)
+└── BookingCalculator.js   # Server Pricing & Fee Calculation Engine (Encapsulation)
+
+client/src/domain/
+├── RentableItem.js        # Frontend Abstract Base Model Class (Inheritance)
+├── CameraItem.js          # Subclass extending RentableItem (Inheritance & FR15 Availability)
+├── LensItem.js            # Subclass extending RentableItem (Inheritance & Optics Specs)
+└── RentalCalculator.js    # Client-Side Pricing & Duration Validation Engine (FR18 Limits)
+
+client/src/services/
+└── productService.js     # Factory functions (createRentableItem) & API/fallback product loaders
 ```
 
 ---
@@ -252,15 +261,21 @@ export class AdminUser extends UserDomain {
 
 ---
 
-## ⚡ Functional Array Methods Usage Matrix
+## ⚡ Functional Array Methods & OOP Domain Functions Usage Matrix
 
-| Functional Array Method | File Location | Code Implementation Purpose |
+| Method / Function | File Location | Code Implementation & Purpose |
 |---|---|---|
-| **`.some()`** | [`CameraDomain.js`](file:///d:/Projects/Ecommerce/server/domain/CameraDomain.js#L41) | Detect date range overlap between requested rental dates and existing bookings |
-| **`.filter()`** | [`CatalogPage.jsx`](file:///d:/Projects/Ecommerce/client/src/pages/CatalogPage.jsx) | Filter camera catalog by search query, brand, category tab, price slider, and condition |
-| **`.reduce()`** | [`CartContext.jsx`](file:///d:/Projects/Ecommerce/client/src/context/CartContext.jsx) | Compute cart totals for rental fee subtotals, security deposit holds, and grand checkout total |
-| **`.map()`** | [`cameraService.js`](file:///d:/Projects/Ecommerce/server/services/cameraService.js#L29) | Instantiate `CameraDomain` OOP objects from Mongoose database models |
-| **`.sort()`** | [`CatalogPage.jsx`](file:///d:/Projects/Ecommerce/client/src/pages/CatalogPage.jsx) | Order inventory by daily rate (low to high, high to low), rating, and alphabetical name |
+| **`createRentableItem(data)`** | [`productService.js`](file:///home/ian/Desktop/Work/Aparture/client/src/services/productService.js) | Factory function instantiating the appropriate OOP domain class (`CameraItem`, `LensItem`, etc.) |
+| **`fetchProductById(id)`** | [`productService.js`](file:///home/ian/Desktop/Work/Aparture/client/src/services/productService.js) | Product page loader fetching API/mock item JSON and converting into OOP item instances |
+| **`isAvailableForRange(start, end)`** | [`CameraItem.js`](file:///home/ian/Desktop/Work/Aparture/client/src/domain/CameraItem.js) | OOP method using `.some()` to detect double-booking overlaps on product pages |
+| **`RentalCalculator.calculateDuration()`** | [`RentalCalculator.js`](file:///home/ian/Desktop/Work/Aparture/client/src/domain/RentalCalculator.js) | OOP static method enforcing FR18 rental duration constraints (1 to 14 days) |
+| **`calculateBaseRentalFee(days)`** | [`RentableItem.js`](file:///home/ian/Desktop/Work/Aparture/client/src/domain/RentableItem.js) | OOP method computing daily subtotal for selected rental days |
+| **`calculateGrandTotal(days)`** | [`RentableItem.js`](file:///home/ian/Desktop/Work/Aparture/client/src/domain/RentableItem.js) | OOP method calculating grand reservation total (rental subtotal + refundable deposit) |
+| **`.some()`** | [`CameraDomain.js`](file:///home/ian/Desktop/Work/Aparture/server/domain/CameraDomain.js) | Detect date range overlap between requested rental dates and existing bookings |
+| **`.filter()`** | [`CatalogPage.jsx`](file:///home/ian/Desktop/Work/Aparture/client/src/pages/CatalogPage.jsx) | Filter camera catalog by search query, brand, category tab, price slider, and condition |
+| **`.reduce()`** | [`CartContext.jsx`](file:///home/ian/Desktop/Work/Aparture/client/src/context/CartContext.jsx) | Compute cart totals for rental fee subtotals, security deposit holds, and grand checkout total |
+| **`.map()`** | [`productService.js`](file:///home/ian/Desktop/Work/Aparture/client/src/services/productService.js) | Transform raw API database arrays into OOP `RentableItem` domain model instances |
+| **`.sort()`** | [`CatalogPage.jsx`](file:///home/ian/Desktop/Work/Aparture/client/src/pages/CatalogPage.jsx) | Order inventory by daily rate (low to high, high to low), rating, and alphabetical name |
 
 ---
 

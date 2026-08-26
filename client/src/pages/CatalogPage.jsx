@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Search, SlidersHorizontal, ArrowUpDown, Filter, Film, RefreshCw, X } from 'lucide-react';
 import api from '../services/api.js';
+import { fetchProducts } from '../services/productService.js';
 import CameraCard from '../components/catalog/CameraCard.jsx';
 import FloatingNavbar from '../components/landing/FloatingNavbar.jsx';
 import ApertureFooter from '../components/landing/ApertureFooter.jsx';
@@ -17,7 +18,7 @@ export default function CatalogPage() {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedBrand, setSelectedBrand] = useState('all');
   const [selectedCondition, setSelectedCondition] = useState('all');
-  const [maxPrice, setMaxPrice] = useState(300);
+  const [maxPrice, setMaxPrice] = useState(500);
   const [sortBy, setSortBy] = useState('rating');
 
   useEffect(() => {
@@ -27,85 +28,26 @@ export default function CatalogPage() {
   const fetchCatalogData = async () => {
     setLoading(true);
     try {
-      const [camRes, catRes] = await Promise.all([
-        api.get('/cameras'),
-        api.get('/categories'),
+      const [productList, catRes] = await Promise.all([
+        fetchProducts(),
+        api.get('/categories').catch(() => []),
       ]);
-      if (Array.isArray(camRes)) {
-        setCameras(camRes);
-      } else if (camRes.success && Array.isArray(camRes.data)) {
-        setCameras(camRes.data);
-      }
 
-      if (Array.isArray(catRes)) {
-        setCategories(catRes);
-      } else if (catRes.success && Array.isArray(catRes.data)) {
-        setCategories(catRes.data);
+      setCameras(productList);
+
+      const rawCats = Array.isArray(catRes) ? catRes : catRes.data || [];
+      if (rawCats.length > 0) {
+        setCategories(rawCats);
+      } else {
+        setCategories([
+          { _id: 'cat_cinema', name: 'Cinema Cameras' },
+          { _id: 'cat_mirrorless', name: 'Mirrorless Bodies' },
+          { _id: 'cat_lenses', name: 'Cinema & Photo Lenses' },
+          { _id: 'cat_drones', name: 'Aerial Drones & Gimbals' },
+        ]);
       }
-    } catch {
-      // Fallback mock data if API fails during initial setup
-      setCameras([
-        {
-          _id: 'fx3',
-          name: 'Sony FX3 Full-Frame Cinema Body',
-          brand: 'Sony',
-          dailyRate: 110,
-          depositAmount: 500,
-          condition: 'new',
-          averageRating: 5.0,
-          imageUrl: '/images/cinema_rig_onset.jpg',
-          category: { name: 'Cinema Cameras' },
-          specs: ['4K 120fps RAW', 'S-Cinetone', 'Active Cooling', 'Dual ISO 800/12800'],
-        },
-        {
-          _id: 'r5c',
-          name: 'Canon EOS R5 C 8K Hybrid Body',
-          brand: 'Canon',
-          dailyRate: 125,
-          depositAmount: 600,
-          condition: 'good',
-          averageRating: 4.9,
-          imageUrl: '/images/ezgif-1b32d6e0c8f85d1e-jpg/ezgif-frame-030.jpg',
-          category: { name: 'Mirrorless' },
-          specs: ['8K 60p RAW', '45.0 MP Stills', 'RF Lens Mount', 'Unlimited 8K Record'],
-        },
-        {
-          _id: 'komodo',
-          name: 'RED Komodo 6K Cinema Package',
-          brand: 'RED',
-          dailyRate: 210,
-          depositAmount: 1200,
-          condition: 'new',
-          averageRating: 5.0,
-          imageUrl: '/images/wireless_follow_focus.jpg',
-          category: { name: 'Cinema Cameras' },
-          specs: ['Super35 Global Shutter', '6K REDCODE RAW', 'Compact Cube Form', 'RED Color Science'],
-        },
-        {
-          _id: 'lens2470',
-          name: 'Sony FE 24-70mm f/2.8 GM II Lens',
-          brand: 'Sony',
-          dailyRate: 45,
-          depositAmount: 250,
-          condition: 'good',
-          averageRating: 4.8,
-          imageUrl: '/images/ezgif-1b32d6e0c8f85d1e-jpg/ezgif-frame-050.jpg',
-          category: { name: 'Lenses' },
-          specs: ['Constant f/2.8 Aperture', 'XA Optical Glass', 'De-clicked Iris Ring', 'Lightweight 695g'],
-        },
-        {
-          _id: 'drone',
-          name: 'DJI Mavic 3 Pro Cine Drone',
-          brand: 'DJI',
-          dailyRate: 150,
-          depositAmount: 700,
-          condition: 'good',
-          averageRating: 4.9,
-          imageUrl: '/images/ezgif-1b32d6e0c8f85d1e-jpg/ezgif-frame-070.jpg',
-          category: { name: 'Drones' },
-          specs: ['Hasselblad 4/3 CMOS', '5.1K Apple ProRes 422', '43 Min Flight Time', 'Omni Obstacle Sense'],
-        },
-      ]);
+    } catch (err) {
+      console.error('Error loading catalog data:', err);
     } finally {
       setLoading(false);
     }
