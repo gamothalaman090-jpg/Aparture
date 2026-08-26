@@ -62,7 +62,7 @@ export default function OrderStatusModal({ booking, onClose, onUpdateSuccess }) 
             Update Booking #{booking?.bookingNumber || booking?._id?.slice(-8)}
           </h2>
           <p className="text-slate-400 text-[11px] mt-1">
-            Customer: <span className="text-white font-bold">{booking?.user?.name}</span> &bull; {booking?.camera?.name}
+            Customer: <span className="text-white font-bold">{booking?.user?.name || booking?.userId?.name || 'Customer'}</span> &bull; {booking?.camera?.name || booking?.cameraId?.name || 'Gear Item'}
           </p>
         </div>
 

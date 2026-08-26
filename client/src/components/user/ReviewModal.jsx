@@ -24,7 +24,7 @@ export default function ReviewModal({ booking, onClose, onReviewSubmitted }) {
 
     try {
       const payload = {
-        cameraId: booking.camera?._id || booking.camera?.id || booking.camera,
+        cameraId: booking.camera?._id || booking.camera?.id || booking.cameraId?._id || booking.cameraId?.id || booking.camera || booking.cameraId,
         bookingId: booking._id,
         rating,
         comment,
@@ -70,7 +70,7 @@ export default function ReviewModal({ booking, onClose, onReviewSubmitted }) {
             Rate Your Rental Experience
           </h2>
           <p className="text-xs font-mono text-slate-400 mt-1">
-            {booking?.camera?.name || 'Cinema Gear Package'}
+            {booking?.camera?.name || booking?.cameraId?.name || 'Cinema Gear Package'}
           </p>
         </div>
 

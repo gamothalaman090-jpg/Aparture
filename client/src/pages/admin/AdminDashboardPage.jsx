@@ -23,27 +23,42 @@ export default function AdminDashboardPage() {
   const fetchDashboardData = async () => {
     setLoading(true);
     try {
-      // Try dashboard stats endpoint
-      const statsRes = await api.get('/dashboard/stats');
-      if (statsRes.success && statsRes.data) {
-        setStats(statsRes.data);
+      // Fetch stats and all bookings concurrently
+      const [statsRes, bookingsRes] = await Promise.all([
+        api.get('/dashboard/stats').catch(() => null),
+        api.get('/bookings/admin/all').catch(() => null),
+      ]);
+
+      const statsData = (statsRes && statsRes.data) ? statsRes.data : statsRes;
+      const bookingsData = (bookingsRes && bookingsRes.data) ? bookingsRes.data : (Array.isArray(bookingsRes) ? bookingsRes : null);
+
+      if (statsData && typeof statsData === 'object') {
+        setStats({
+          totalRevenue: statsData.totalRevenue ?? 0,
+          activeRentals: statsData.activeRentalsCount ?? statsData.activeRentals ?? 0,
+          overdueCount: statsData.overdueRentalsCount ?? statsData.overdueCount ?? 0,
+          totalCameras: statsData.totalCameras ?? 0,
+        });
+
+        if (Array.isArray(statsData.recentOrders) && statsData.recentOrders.length > 0) {
+          setRecentBookings(statsData.recentOrders.slice(0, 5));
+        }
       }
 
-      // Fetch bookings list
-      const bookingsRes = await api.get('/bookings/admin/all');
-      if (bookingsRes.success && Array.isArray(bookingsRes.data)) {
-        setRecentBookings(bookingsRes.data.slice(0, 5));
-        
-        // Calculate totals if stats endpoint didn't provide
-        const revenue = bookingsRes.data.reduce((acc, b) => acc + (b.rentalFee || 0), 0);
-        const active = bookingsRes.data.filter((b) => b.status === 'ongoing' || b.status === 'confirmed').length;
-        const overdue = bookingsRes.data.filter((b) => b.status === 'overdue').length;
+      if (Array.isArray(bookingsData)) {
+        if (!statsData || !Array.isArray(statsData.recentOrders) || statsData.recentOrders.length === 0) {
+          setRecentBookings(bookingsData.slice(0, 5));
+        }
+
+        const revenue = bookingsData.reduce((acc, b) => (b.status !== 'cancelled' ? acc + (b.rentalFee || 0) : acc), 0);
+        const active = bookingsData.filter((b) => b.status === 'ongoing' || b.status === 'confirmed').length;
+        const overdue = bookingsData.filter((b) => b.status === 'overdue').length;
 
         setStats((prev) => ({
           totalRevenue: prev.totalRevenue || revenue,
           activeRentals: prev.activeRentals || active,
           overdueCount: prev.overdueCount || overdue,
-          totalCameras: prev.totalCameras || 5,
+          totalCameras: prev.totalCameras || 0,
         }));
       }
     } catch {
@@ -194,8 +209,8 @@ export default function AdminDashboardPage() {
                   {recentBookings.map((b) => (
                     <tr key={b._id} className="hover:bg-white/5 transition-colors">
                       <td className="py-3.5 pl-2 font-bold text-white">#{b.bookingNumber || b._id?.slice(-6)}</td>
-                      <td className="py-3.5 text-slate-300">{b.user?.name || 'Customer'}</td>
-                      <td className="py-3.5 text-cyan-400 font-bold">{b.camera?.name || 'Gear Item'}</td>
+                      <td className="py-3.5 text-slate-300">{b.user?.name || b.userId?.name || 'Customer'}</td>
+                      <td className="py-3.5 text-cyan-400 font-bold">{b.camera?.name || b.cameraId?.name || 'Gear Item'}</td>
                       <td className="py-3.5 text-slate-400">{formatDate(b.startDate)}</td>
                       <td className="py-3.5 text-amber-400 font-bold">{formatCurrency(b.rentalFee)}</td>
                       <td className="py-3.5 pr-2">

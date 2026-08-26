@@ -71,19 +71,19 @@ export default function OrderDetailModal({ booking, onClose, onBookingUpdated })
         {/* Reserved Gear Card */}
         <div className="bg-black/60 rounded-2xl p-4 border border-white/10 flex items-center space-x-4">
           <img
-            src={booking?.camera?.imageUrl || booking?.camera?.imageUrls?.[0] || '/images/cinema_rig_onset.jpg'}
-            alt={booking?.camera?.name}
+            src={booking?.camera?.imageUrl || booking?.camera?.imageUrls?.[0] || booking?.cameraId?.imageUrl || booking?.cameraId?.imageUrls?.[0] || '/images/cinema_rig_onset.jpg'}
+            alt={booking?.camera?.name || booking?.cameraId?.name}
             className="w-16 h-16 rounded-xl object-cover border border-white/10"
           />
           <div>
             <span className="text-[10px] font-mono text-cyan-400 uppercase font-bold">
-              {booking?.camera?.brand}
+              {booking?.camera?.brand || booking?.cameraId?.brand}
             </span>
             <h3 className="text-base font-bold text-white font-display">
-              {booking?.camera?.name}
+              {booking?.camera?.name || booking?.cameraId?.name}
             </h3>
             <div className="text-xs font-mono text-slate-400 mt-0.5">
-              Daily Rate: {formatCurrency(booking?.dailyRateSnapshot || booking?.camera?.dailyRate)}/day
+              Daily Rate: {formatCurrency(booking?.dailyRateSnapshot || booking?.camera?.dailyRate || booking?.cameraId?.dailyRate)}/day
             </div>
           </div>
         </div>

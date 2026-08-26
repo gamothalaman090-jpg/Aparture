@@ -5,7 +5,8 @@ import User from '../models/User.js';
 export const getDashboardStats = async () => {
   const allBookings = await Booking.find({})
     .populate('cameraId', 'name brand dailyRate')
-    .populate('userId', 'name email');
+    .populate('userId', 'name email')
+    .sort({ createdAt: -1 });
 
   const totalCameras = await Camera.countDocuments({ isActive: true });
   const totalCustomers = await User.countDocuments({ role: 'customer' });

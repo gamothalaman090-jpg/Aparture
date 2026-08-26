@@ -77,8 +77,8 @@ export default function AdminOrdersPage() {
     const matchesTab = activeTab === 'all' || b.status?.toLowerCase() === activeTab;
     const matchesSearch =
       b.bookingNumber?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      b.user?.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      b.camera?.name?.toLowerCase().includes(searchQuery.toLowerCase());
+      (b.user?.name || b.userId?.name)?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (b.camera?.name || b.cameraId?.name)?.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesTab && matchesSearch;
   });
 
@@ -162,10 +162,10 @@ export default function AdminOrdersPage() {
                     <tr key={b._id} className="hover:bg-white/5 transition-colors">
                       <td className="py-3.5 pl-2 font-bold text-white">#{b.bookingNumber || b._id?.slice(-6)}</td>
                       <td className="py-3.5 text-slate-300">
-                        <div className="font-bold text-white">{b.user?.name || 'Customer'}</div>
-                        <div className="text-[10px] text-slate-500">{b.user?.email}</div>
+                        <div className="font-bold text-white">{b.user?.name || b.userId?.name || 'Customer'}</div>
+                        <div className="text-[10px] text-slate-500">{b.user?.email || b.userId?.email}</div>
                       </td>
-                      <td className="py-3.5 text-cyan-400 font-bold">{b.camera?.name || 'Gear Item'}</td>
+                      <td className="py-3.5 text-cyan-400 font-bold">{b.camera?.name || b.cameraId?.name || 'Gear Item'}</td>
                       <td className="py-3.5 text-slate-400">{formatDate(b.startDate)} &rarr; {formatDate(b.endDate)}</td>
                       <td className="py-3.5 text-amber-400 font-bold">{formatCurrency(b.rentalFee)}</td>
                       <td className="py-3.5 text-slate-300">{formatCurrency(b.depositAmount)}</td>

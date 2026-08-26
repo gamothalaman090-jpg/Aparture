@@ -84,7 +84,7 @@ server/domain/
 ├── RentableItem.js        # Backend Base Abstract Class (Inheritance)
 ├── CameraDomain.js        # Backend Subclass extending RentableItem (Inheritance & Encapsulation)
 ├── UserDomain.js          # User Abstract Base & Derived Classes (Polymorphism)
-└── BookingCalculator.js   # Server Pricing & Fee Calculation Engine (Encapsulation)
+└── BookingCalculator.js   # Server Pricing, Fee, Late & Refund Calculation Engine (Encapsulation)
 
 client/src/domain/
 ├── RentableItem.js        # Frontend Abstract Base Model Class (Inheritance)
@@ -101,7 +101,7 @@ client/src/services/
 ### 1. Inheritance (Abstract Base & Subclasses)
 
 #### Abstract Base Class: `RentableItem`
-Located at [`server/domain/RentableItem.js`](file:///d:/Projects/Ecommerce/server/domain/RentableItem.js).
+Located at [`server/domain/RentableItem.js`](file:///home/ian/Desktop/Work/Aparture/server/domain/RentableItem.js) and [`client/src/domain/RentableItem.js`](file:///home/ian/Desktop/Work/Aparture/client/src/domain/RentableItem.js).
 
 `RentableItem` is an abstract base class defining common attributes (`id`, `name`, `dailyRate`, `depositAmount`, `isActive`) and foundational methods shared by all rental inventory types. Direct instantiation is guarded against runtime errors.
 
@@ -126,27 +126,31 @@ export class RentableItem {
   getDeposit() {
     return this.depositAmount;
   }
+
+  getItemSummary() {
+    return { id: this.id, name: this.name, dailyRate: this.dailyRate, depositAmount: this.depositAmount, isActive: this.isActive };
+  }
 }
 ```
 
-#### Derived Subclass: `CameraDomain`
-Located at [`server/domain/CameraDomain.js`](file:///d:/Projects/Ecommerce/server/domain/CameraDomain.js).
+#### Derived Subclasses: `CameraDomain`, `CameraItem`, & `LensItem`
+Located at [`server/domain/CameraDomain.js`](file:///home/ian/Desktop/Work/Aparture/server/domain/CameraDomain.js) and [`client/src/domain/CameraItem.js`](file:///home/ian/Desktop/Work/Aparture/client/src/domain/CameraItem.js).
 
-`CameraDomain` extends `RentableItem` using the `super()` keyword, inheriting `dailyRate` and `depositAmount` while adding camera-specific properties (`brand`, `category`, `specs`, `stockQuantity`, `bookedRanges`).
+Subclasses extend `RentableItem` using `super()`, inheriting base pricing logic while encapsulating domain-specific properties (`brand`, `category`, `specs`, `stockQuantity`, `bookedRanges`).
 
 ```javascript
 import { RentableItem } from './RentableItem.js';
 
 export class CameraDomain extends RentableItem {
-  constructor({ id, name, brand, category, description, specs, dailyRate, depositAmount, stockQuantity, bookedRanges }) {
-    // Invoke base class constructor via super()
+  constructor({ id, name, brand, category, description, specs, imageUrls, dailyRate, depositAmount, stockQuantity, condition, isActive, bookedRanges }) {
     super({ id, name, dailyRate, depositAmount, isActive });
-    
     this.brand = brand;
     this.category = category;
     this.description = description;
     this.specs = specs;
+    this.imageUrls = imageUrls;
     this.stockQuantity = stockQuantity;
+    this.condition = condition;
     this.bookedRanges = bookedRanges;
   }
 }
@@ -158,20 +162,19 @@ export class CameraDomain extends RentableItem {
 
 Encapsulation hides complex implementation details inside class methods, exposing clean interfaces to services and controllers.
 
-#### A. Double-Booking Overlap Prevention Engine (`CameraDomain`)
+#### A. Double-Booking Overlap Prevention Engine (`CameraDomain` & `CameraItem`)
 The method `isAvailableForRange()` encapsulates the double-booking overlap detection algorithm. It uses the JavaScript array `.some()` method to check if a requested date range `[reqStart, reqEnd]` overlaps with any confirmed reservation `[existingStart, existingEnd]`:
 
 $$\text{Overlap Condition} \iff (\text{reqStart} \le \text{existingEnd}) \land (\text{reqEnd} \ge \text{existingStart})$$
 
 ```javascript
-// Located in CameraDomain.js
+// Located in CameraDomain.js / CameraItem.js
 isAvailableForRange(requestedStart, requestedEnd) {
   if (!this.isActive || this.stockQuantity < 1) return false;
 
   const reqStart = new Date(requestedStart).getTime();
   const reqEnd = new Date(requestedEnd).getTime();
 
-  // Encapsulated array .some() overlap validation
   const hasOverlap = this.bookedRanges.some(range => {
     const existingStart = new Date(range.startDate).getTime();
     const existingEnd = new Date(range.endDate).getTime();
@@ -182,10 +185,10 @@ isAvailableForRange(requestedStart, requestedEnd) {
 }
 ```
 
-#### B. Financial & Fee Calculation Engine (`BookingCalculator`)
-Located at [`server/domain/BookingCalculator.js`](file:///d:/Projects/Ecommerce/server/domain/BookingCalculator.js).
+#### B. Financial, Fee & Refund Calculation Engine (`BookingCalculator` & `RentalCalculator`)
+Located at [`server/domain/BookingCalculator.js`](file:///home/ian/Desktop/Work/Aparture/server/domain/BookingCalculator.js) and [`client/src/domain/RentalCalculator.js`](file:///home/ian/Desktop/Work/Aparture/client/src/domain/RentalCalculator.js).
 
-`BookingCalculator` encapsulates static methods for computing rental days, daily subtotals, security deposit holds, 1.5x late fees, and damage deductions:
+Encapsulates static methods for computing rental days, daily subtotals, security deposit holds, 1.5x late fee penalties, damage deductions, and deposit refund breakdowns:
 
 ```javascript
 export class BookingCalculator {
@@ -210,7 +213,22 @@ export class BookingCalculator {
     const rentalFee = dailyRate * durationDays;
     const totalPrice = rentalFee + depositAmount;
 
-    return { durationDays, rentalFee, depositAmount, totalPrice };
+    return { durationDays, dailyRateSnapshot: dailyRate, depositAmount, rentalFee, totalPrice };
+  }
+
+  static calculateLateFee(endDate, actualReturnDate, dailyRate) {
+    const due = new Date(endDate);
+    const returned = new Date(actualReturnDate);
+    if (returned <= due) return 0;
+    const overdueDays = Math.ceil(Math.abs(returned - due) / (1000 * 60 * 60 * 24));
+    return overdueDays * (dailyRate * this.LATE_FEE_MULTIPLIER);
+  }
+
+  static calculateRefundBreakdown({ depositAmount, lateFee = 0, damageFee = 0 }) {
+    const totalDeductions = lateFee + damageFee;
+    const refundedDeposit = Math.max(0, depositAmount - totalDeductions);
+    const additionalAmountOwed = Math.max(0, totalDeductions - depositAmount);
+    return { depositAmount, lateFee, damageFee, totalDeductions, refundedDeposit, additionalAmountOwed };
   }
 }
 ```
@@ -219,7 +237,7 @@ export class BookingCalculator {
 
 ### 3. Polymorphism (Role-Based Permissions Matrix)
 
-Located at [`server/domain/UserDomain.js`](file:///d:/Projects/Ecommerce/server/domain/UserDomain.js).
+Located at [`server/domain/UserDomain.js`](file:///home/ian/Desktop/Work/Aparture/server/domain/UserDomain.js).
 
 Polymorphism allows `CustomerUser` and `AdminUser` to inherit from the base `UserDomain` class and override the `getPermissions()` and `getDashboardTitle()` methods to return role-specific permissions dynamically.
 
@@ -233,10 +251,7 @@ export class UserDomain {
     this.role = role;
   }
 
-  // Polymorphic method overriden by subclasses
-  getPermissions() {
-    return [];
-  }
+  getPermissions() { return []; }
 }
 
 // Subclass 1: CustomerUser
@@ -267,15 +282,27 @@ export class AdminUser extends UserDomain {
 |---|---|---|
 | **`createRentableItem(data)`** | [`productService.js`](file:///home/ian/Desktop/Work/Aparture/client/src/services/productService.js) | Factory function instantiating the appropriate OOP domain class (`CameraItem`, `LensItem`, etc.) |
 | **`fetchProductById(id)`** | [`productService.js`](file:///home/ian/Desktop/Work/Aparture/client/src/services/productService.js) | Product page loader fetching API/mock item JSON and converting into OOP item instances |
-| **`isAvailableForRange(start, end)`** | [`CameraItem.js`](file:///home/ian/Desktop/Work/Aparture/client/src/domain/CameraItem.js) | OOP method using `.some()` to detect double-booking overlaps on product pages |
-| **`RentalCalculator.calculateDuration()`** | [`RentalCalculator.js`](file:///home/ian/Desktop/Work/Aparture/client/src/domain/RentalCalculator.js) | OOP static method enforcing FR18 rental duration constraints (1 to 14 days) |
-| **`calculateBaseRentalFee(days)`** | [`RentableItem.js`](file:///home/ian/Desktop/Work/Aparture/client/src/domain/RentableItem.js) | OOP method computing daily subtotal for selected rental days |
-| **`calculateGrandTotal(days)`** | [`RentableItem.js`](file:///home/ian/Desktop/Work/Aparture/client/src/domain/RentableItem.js) | OOP method calculating grand reservation total (rental subtotal + refundable deposit) |
-| **`.some()`** | [`CameraDomain.js`](file:///home/ian/Desktop/Work/Aparture/server/domain/CameraDomain.js) | Detect date range overlap between requested rental dates and existing bookings |
-| **`.filter()`** | [`CatalogPage.jsx`](file:///home/ian/Desktop/Work/Aparture/client/src/pages/CatalogPage.jsx) | Filter camera catalog by search query, brand, category tab, price slider, and condition |
-| **`.reduce()`** | [`CartContext.jsx`](file:///home/ian/Desktop/Work/Aparture/client/src/context/CartContext.jsx) | Compute cart totals for rental fee subtotals, security deposit holds, and grand checkout total |
-| **`.map()`** | [`productService.js`](file:///home/ian/Desktop/Work/Aparture/client/src/services/productService.js) | Transform raw API database arrays into OOP `RentableItem` domain model instances |
-| **`.sort()`** | [`CatalogPage.jsx`](file:///home/ian/Desktop/Work/Aparture/client/src/pages/CatalogPage.jsx) | Order inventory by daily rate (low to high, high to low), rating, and alphabetical name |
+| **`CameraDomain.isAvailableForRange(start, end)`** | [`CameraDomain.js`](file:///home/ian/Desktop/Work/Aparture/server/domain/CameraDomain.js) | OOP method using `.some()` to detect double-booking overlaps during reservation creation |
+| **`CameraDomain.addBookedRange()`** | [`CameraDomain.js`](file:///home/ian/Desktop/Work/Aparture/server/domain/CameraDomain.js) | OOP method appending confirmed booking dates to equipment's bookedRanges array |
+| **`CameraDomain.removeBookedRange()`** | [`CameraDomain.js`](file:///home/ian/Desktop/Work/Aparture/server/domain/CameraDomain.js) | OOP method using `.filter()` to remove cancelled/returned booking date ranges |
+| **`BookingCalculator.calculateDuration()`** | [`BookingCalculator.js`](file:///home/ian/Desktop/Work/Aparture/server/domain/BookingCalculator.js) | OOP static method enforcing FR18 rental duration constraints (1 to 14 days) |
+| **`BookingCalculator.calculatePricing()`** | [`BookingCalculator.js`](file:///home/ian/Desktop/Work/Aparture/server/domain/BookingCalculator.js) | OOP static method computing daily rate snapshots, rental fees, and deposit totals |
+| **`BookingCalculator.calculateLateFee()`** | [`BookingCalculator.js`](file:///home/ian/Desktop/Work/Aparture/server/domain/BookingCalculator.js) | OOP static method calculating 1.5x daily rate penalties for overdue equipment check-ins |
+| **`BookingCalculator.calculateRefundBreakdown()`** | [`BookingCalculator.js`](file:///home/ian/Desktop/Work/Aparture/server/domain/BookingCalculator.js) | OOP static method computing net deposit refund minus late/damage fees |
+| **`RentalCalculator.calculateDuration()`** | [`RentalCalculator.js`](file:///home/ian/Desktop/Work/Aparture/client/src/domain/RentalCalculator.js) | Client OOP static method calculating date range duration in days (1 to 14 days) |
+| **`RentalCalculator.calculatePricing()`** | [`RentalCalculator.js`](file:///home/ian/Desktop/Work/Aparture/client/src/domain/RentalCalculator.js) | Client OOP static method calculating rental fee subtotals and grand totals |
+| **`RentableItem.calculateBaseRentalFee()`** | [`RentableItem.js`](file:///home/ian/Desktop/Work/Aparture/server/domain/RentableItem.js) | OOP base class method computing daily subtotal for selected rental days |
+| **`RentableItem.getDeposit()`** | [`RentableItem.js`](file:///home/ian/Desktop/Work/Aparture/server/domain/RentableItem.js) | OOP base class getter returning security deposit hold requirement |
+| **`UserDomain.getPermissions()`** | [`UserDomain.js`](file:///home/ian/Desktop/Work/Aparture/server/domain/UserDomain.js) | Polymorphic method overridden by `CustomerUser` and `AdminUser` for role access control |
+| **`getDashboardStats()`** | [`dashboardService.js`](file:///home/ian/Desktop/Work/Aparture/server/services/dashboardService.js) | Dashboard service gathering aggregate metrics, revenue totals, top items, and dispatch stream |
+| **`createBooking()`** | [`bookingService.js`](file:///home/ian/Desktop/Work/Aparture/server/services/bookingService.js) | Booking service handling double-booking checks, pricing calculation, and booking persistence |
+| **`updateBookingStatus()`** | [`bookingService.js`](file:///home/ian/Desktop/Work/Aparture/server/services/bookingService.js) | Booking service handling lifecycle transitions, actual return dates, and late/damage fee assessments |
+| **`.some()`** | [`CameraDomain.js`](file:///home/ian/Desktop/Work/Aparture/server/domain/CameraDomain.js), [`CameraItem.js`](file:///home/ian/Desktop/Work/Aparture/client/src/domain/CameraItem.js) | Check overlap between requested rental dates and confirmed existing bookings |
+| **`.filter()`** | [`CatalogPage.jsx`](file:///home/ian/Desktop/Work/Aparture/client/src/pages/CatalogPage.jsx), [`dashboardService.js`](file:///home/ian/Desktop/Work/Aparture/server/services/dashboardService.js), [`CameraDomain.js`](file:///home/ian/Desktop/Work/Aparture/server/domain/CameraDomain.js) | Filter catalog items, compute active/overdue reservation counts, and purge cancelled ranges |
+| **`.reduce()`** | [`CartContext.jsx`](file:///home/ian/Desktop/Work/Aparture/client/src/context/CartContext.jsx), [`dashboardService.js`](file:///home/ian/Desktop/Work/Aparture/server/services/dashboardService.js) | Compute cart financial totals, aggregate gross platform revenue, and rank top rented cameras |
+| **`.map()`** | [`productService.js`](file:///home/ian/Desktop/Work/Aparture/client/src/services/productService.js), [`CatalogPage.jsx`](file:///home/ian/Desktop/Work/Aparture/client/src/pages/CatalogPage.jsx) | Transform database JSON arrays into OOP `RentableItem` domain model instances and render UI cards |
+| **`.sort()`** | [`CatalogPage.jsx`](file:///home/ian/Desktop/Work/Aparture/client/src/pages/CatalogPage.jsx), [`dashboardService.js`](file:///home/ian/Desktop/Work/Aparture/server/services/dashboardService.js) | Order catalog by rate/rating and sort platform bookings by creation timestamp (`createdAt: -1`) |
+| **`.slice()`** | [`dashboardService.js`](file:///home/ian/Desktop/Work/Aparture/server/services/dashboardService.js), [`AdminDashboardPage.jsx`](file:///home/ian/Desktop/Work/Aparture/client/src/pages/admin/AdminDashboardPage.jsx) | Extract top 5 rented items and slice top 8 recent bookings for command dashboard dispatch stream |
 
 ---
 

@@ -181,19 +181,19 @@ export default function OrderHistoryPage() {
                   {/* Gear Info */}
                   <div className="flex items-center space-x-4 my-4">
                     <img
-                      src={b.camera?.imageUrl || b.camera?.imageUrls?.[0] || '/images/cinema_rig_onset.jpg'}
-                      alt={b.camera?.name}
+                      src={b.camera?.imageUrl || b.camera?.imageUrls?.[0] || b.cameraId?.imageUrl || b.cameraId?.imageUrls?.[0] || '/images/cinema_rig_onset.jpg'}
+                      alt={b.camera?.name || b.cameraId?.name}
                       className="w-16 h-16 rounded-xl object-cover border border-white/10 shrink-0"
                     />
                     <div>
                       <span className="text-[10px] font-mono text-cyan-400 uppercase font-bold">
-                        {b.camera?.brand}
+                        {b.camera?.brand || b.cameraId?.brand}
                       </span>
                       <h3 className="text-base font-bold text-white font-display line-clamp-1">
-                        {b.camera?.name}
+                        {b.camera?.name || b.cameraId?.name}
                       </h3>
                       <div className="text-xs font-mono text-slate-400 mt-1">
-                        Duration: <span className="text-amber-400 font-bold">{b.totalDays || 1} Days</span> &bull; Rate: {formatCurrency(b.dailyRateSnapshot || b.camera?.dailyRate)}/day
+                        Duration: <span className="text-amber-400 font-bold">{b.totalDays || 1} Days</span> &bull; Rate: {formatCurrency(b.dailyRateSnapshot || b.camera?.dailyRate || b.cameraId?.dailyRate)}/day
                       </div>
                     </div>
                   </div>
