@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Search, SlidersHorizontal, ArrowUpDown, Filter, Film, RefreshCw, X } from 'lucide-react';
 import api from '../services/api.js';
+import { fetchProducts } from '../services/productService.js';
 import CameraCard from '../components/catalog/CameraCard.jsx';
 import FloatingNavbar from '../components/landing/FloatingNavbar.jsx';
 import ApertureFooter from '../components/landing/ApertureFooter.jsx';
@@ -18,7 +19,7 @@ export default function CatalogPage() {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedBrand, setSelectedBrand] = useState('all');
   const [selectedCondition, setSelectedCondition] = useState('all');
-  const [maxPrice, setMaxPrice] = useState(300);
+  const [maxPrice, setMaxPrice] = useState(500);
   const [sortBy, setSortBy] = useState('rating');
 
   useEffect(() => {
@@ -28,27 +29,26 @@ export default function CatalogPage() {
   const fetchCatalogData = async () => {
     setLoading(true);
     try {
-      const [camRes, catRes] = await Promise.all([
-        api.get('/cameras'),
-        api.get('/categories'),
+      const [productList, catRes] = await Promise.all([
+        fetchProducts(),
+        api.get('/categories').catch(() => []),
       ]);
-      if (Array.isArray(camRes)) {
-        setCameras(camRes);
-      } else if (camRes && camRes.success && Array.isArray(camRes.data)) {
-        setCameras(camRes.data);
-      } else {
-        setCameras([]);
-      }
+      const rawCams = Array.isArray(productList) ? productList : productList?.data || [];
+      setCameras(rawCams);
 
-      if (Array.isArray(catRes)) {
-        setCategories(catRes);
-      } else if (catRes && catRes.success && Array.isArray(catRes.data)) {
-        setCategories(catRes.data);
+      const rawCats = Array.isArray(catRes) ? catRes : catRes?.data || [];
+      if (rawCats.length > 0) {
+        setCategories(rawCats);
       } else {
-        setCategories([]);
+        setCategories([
+          { _id: 'cat_cinema', name: 'Cinema Cameras' },
+          { _id: 'cat_mirrorless', name: 'Mirrorless Bodies' },
+          { _id: 'cat_lenses', name: 'Cinema & Photo Lenses' },
+          { _id: 'cat_drones', name: 'Aerial Drones & Gimbals' },
+        ]);
       }
     } catch (err) {
-      console.error('Failed to fetch MongoDB catalog:', err);
+      console.error('Failed to fetch catalog data:', err);
       setCameras([]);
       setCategories([]);
     } finally {

@@ -48,8 +48,8 @@ export default function CheckoutPage() {
       const item = cartItems[0];
       const cameraId = item.camera._id || item.camera.id;
       const payload = {
-        cameraId,
-        camera: cameraId,
+        cameraId: item.camera._id || item.camera.id,
+        camera: item.camera._id || item.camera.id,
         startDate: dateRange.startDate,
         endDate: dateRange.endDate,
       };

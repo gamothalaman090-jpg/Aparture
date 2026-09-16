@@ -60,7 +60,6 @@ export default function AdminOrdersPage() {
       customerName.toLowerCase().includes(searchLower) ||
       customerEmail.toLowerCase().includes(searchLower) ||
       cameraName.toLowerCase().includes(searchLower);
-
     return matchesTab && matchesSearch;
   });
 
