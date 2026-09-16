@@ -40,7 +40,22 @@ export default {
       boxShadow: {
         'studio-glow': '0 0 25px -5px rgba(14, 165, 233, 0.15)',
         'amber-glow': '0 0 25px -5px rgba(245, 158, 11, 0.2)',
-      }
+        'cyan-glow': '0 0 20px -3px rgba(6, 182, 212, 0.5)',
+      },
+      keyframes: {
+        fadeIn: {
+          '0%': { opacity: '0' },
+          '100%': { opacity: '1' },
+        },
+        scaleUp: {
+          '0%': { opacity: '0', transform: 'scale(0.95) translateY(10px)' },
+          '100%': { opacity: '1', transform: 'scale(1) translateY(0)' },
+        },
+      },
+      animation: {
+        fadeIn: 'fadeIn 200ms cubic-bezier(0.16, 1, 0.3, 1)',
+        scaleUp: 'scaleUp 250ms cubic-bezier(0.16, 1, 0.3, 1)',
+      },
     },
   },
   plugins: [],

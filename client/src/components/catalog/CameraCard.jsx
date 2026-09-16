@@ -5,6 +5,8 @@ import { formatCurrency } from '../../utils/formatters.js';
 import { soundFx } from '../../services/audioService.js';
 import { useCart } from '../../context/CartContext.jsx';
 import { useToast } from '../../context/ToastContext.jsx';
+import DomTiltCard from '../common/DomTiltCard.jsx';
+import { createParticleExplosion, showDOMTooltip } from '../../utils/domFx.js';
 
 export default function CameraCard({ camera }) {
   const { addToCart } = useCart();
@@ -14,6 +16,7 @@ export default function CameraCard({ camera }) {
     e.preventDefault();
     e.stopPropagation();
     soundFx.playClickSound();
+    createParticleExplosion(e, { count: 18 });
     addToCart(camera);
     showToast(`Added ${camera.name} to rental cart!`, 'success');
   };
@@ -25,7 +28,7 @@ export default function CameraCard({ camera }) {
   const imageUrl = camera.imageUrl || '/images/cinema_rig_onset.jpg';
 
   return (
-    <div
+    <DomTiltCard
       onClick={handleCardClick}
       className="glass-panel-cinema rounded-3xl overflow-hidden group hover:border-cyan-500/50 transition-all duration-300 flex flex-col justify-between"
     >
@@ -116,6 +119,6 @@ export default function CameraCard({ camera }) {
           </Link>
         </div>
       </div>
-    </div>
+    </DomTiltCard>
   );
 }

@@ -57,14 +57,14 @@ export default function CustomCursor() {
     <>
       <div
         ref={dotRef}
-        className={`fixed top-0 left-0 w-2 h-2 rounded-full pointer-events-none z-[9999] hidden md:block transition-colors duration-150 ${
+        className={`fixed top-0 left-0 w-2 h-2 rounded-full pointer-events-none z-[200000] hidden md:block transition-colors duration-150 ${
           isHovered ? 'bg-cyan-400 scale-125' : 'bg-white'
         }`}
         style={{ willChange: 'transform' }}
       />
       <div
         ref={ringRef}
-        className={`fixed top-0 left-0 border rounded-full pointer-events-none z-[9998] hidden md:block transition-[width,height,background-color,border-color,box-shadow] duration-150 ease-out ${
+        className={`fixed top-0 left-0 border rounded-full pointer-events-none z-[199999] hidden md:block transition-[width,height,background-color,border-color,box-shadow] duration-150 ease-out ${
           isPressed
             ? 'w-6 h-6 border-cyan-400 bg-cyan-500/20 shadow-[0_0_12px_rgba(6,182,212,0.6)]'
             : isHovered

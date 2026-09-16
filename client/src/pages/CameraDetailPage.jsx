@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import {
   Camera,
@@ -22,6 +22,8 @@ import { useToast } from '../context/ToastContext.jsx';
 import FloatingNavbar from '../components/landing/FloatingNavbar.jsx';
 import ApertureFooter from '../components/landing/ApertureFooter.jsx';
 import CustomCursor from '../components/landing/CustomCursor.jsx';
+import DomOpticalViewer from '../components/common/DomOpticalViewer.jsx';
+import { createParticleExplosion, createCameraFlashDOM, showDOMTooltip } from '../utils/domFx.js';
 
 export default function CameraDetailPage() {
   const { id } = useParams();
@@ -124,13 +126,25 @@ export default function CameraDetailPage() {
     if (field === 'end') setEndDate(e.target.value);
   };
 
+  const reserveBtnRef = useRef(null);
+
   const handleReserve = () => {
     if (!camera) return;
     soundFx.playSnapSound();
+    // DOM shutter flash and particle burst on booking
+    createCameraFlashDOM({ duration: 250 });
+    if (reserveBtnRef.current) {
+      createParticleExplosion(reserveBtnRef.current, {
+        count: 28,
+        colors: ['#06b6d4', '#f59e0b', '#ffffff', '#10b981', '#38bdf8'],
+        spread: 160,
+      });
+      showDOMTooltip(reserveBtnRef.current, `GEAR LOCKED — ${days} DAYS`, { color: '#10b981' });
+    }
     updateDateRange(startDate, endDate);
     addToCart(camera, startDate, endDate);
     showToast(`Locked in ${camera.name} for ${days} days!`, 'success');
-    navigate('/cart');
+    setTimeout(() => navigate('/cart'), 400);
   };
 
   const galleryImages = camera?.images?.length ? camera.images : [camera?.imageUrl || '/images/cinema_rig_onset.jpg'];
@@ -190,53 +204,33 @@ export default function CameraDetailPage() {
           {/* Left Column: Gallery & Details */}
           <div className="lg:col-span-7 space-y-10">
             
-            {/* Gallery Frame */}
-            <div className="space-y-4">
-              <div className="glass-panel-cinema rounded-3xl overflow-hidden relative aspect-[16/10] bg-black border border-white/10 shadow-2xl">
-                <img
-                  src={galleryImages[activeImageIndex]}
-                  alt={camera.name}
-                  className="w-full h-full object-cover"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-60" />
-                
-                {/* Brand Badge */}
-                <div className="absolute top-4 left-4 flex items-center space-x-2">
-                  <span className="px-3 py-1 rounded-full bg-black/80 backdrop-blur-md text-xs font-mono font-bold text-cyan-400 border border-cyan-500/40 uppercase">
-                    {camera.brand}
-                  </span>
-                  <span className="px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-xs font-mono uppercase font-bold">
-                    {camera.condition || 'Mint'}
-                  </span>
-                </div>
+            {/* DOM Interactive Optical Viewer — replaces static gallery */}
+            <DomOpticalViewer
+              imageUrl={galleryImages[activeImageIndex]}
+              cameraName={camera.name}
+              brand={camera.brand}
+              condition={camera.condition || 'Mint'}
+            />
 
-                {/* Rating Badge */}
-                <div className="absolute top-4 right-4 flex items-center space-x-1.5 px-3 py-1 rounded-full bg-black/80 backdrop-blur-md text-xs font-mono font-bold text-amber-400 border border-amber-400/40">
-                  <Star className="w-4 h-4 fill-amber-400 text-amber-400" />
-                  <span>{camera.averageRating ? camera.averageRating.toFixed(1) : '5.0'}</span>
-                </div>
+            {/* Gallery Thumbnails */}
+            {galleryImages.length > 1 && (
+              <div className="flex space-x-3 overflow-x-auto pb-2 mt-4">
+                {galleryImages.map((img, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => {
+                      soundFx.playDialTickSound(1.2);
+                      setActiveImageIndex(idx);
+                    }}
+                    className={`w-20 h-16 rounded-xl overflow-hidden border-2 transition-all shrink-0 ${
+                      activeImageIndex === idx ? 'border-cyan-400 scale-105 shadow-cyan-glow' : 'border-white/10 opacity-60 hover:opacity-100'
+                    }`}
+                  >
+                    <img src={img} alt="" className="w-full h-full object-cover" />
+                  </button>
+                ))}
               </div>
-
-              {/* Gallery Thumbnails */}
-              {galleryImages.length > 1 && (
-                <div className="flex space-x-3 overflow-x-auto pb-2">
-                  {galleryImages.map((img, idx) => (
-                    <button
-                      key={idx}
-                      onClick={() => {
-                        soundFx.playDialTickSound(1.2);
-                        setActiveImageIndex(idx);
-                      }}
-                      className={`w-20 h-16 rounded-xl overflow-hidden border-2 transition-all shrink-0 ${
-                        activeImageIndex === idx ? 'border-cyan-400 scale-105 shadow-cyan-glow' : 'border-white/10 opacity-60 hover:opacity-100'
-                      }`}
-                    >
-                      <img src={img} alt="" className="w-full h-full object-cover" />
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
+            )}
 
             {/* Title & Description */}
             <div className="space-y-4">
@@ -377,6 +371,7 @@ export default function CameraDetailPage() {
               </div>
 
               <button
+                ref={reserveBtnRef}
                 onClick={handleReserve}
                 className="w-full py-4 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold text-xs font-mono uppercase tracking-widest flex items-center justify-center space-x-2 shadow-[0_0_20px_rgba(6,182,212,0.5)] transition-all"
               >
