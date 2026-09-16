@@ -21,7 +21,9 @@ export default function OrderConfirmationPage() {
     setLoading(true);
     try {
       const res = await api.get(`/bookings/${id}`);
-      if (res.success && res.data) {
+      if (res && (res._id || res.id)) {
+        setBooking(res);
+      } else if (res && res.data) {
         setBooking(res.data);
       }
     } catch {

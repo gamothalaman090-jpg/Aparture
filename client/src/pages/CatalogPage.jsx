@@ -11,6 +11,7 @@ export default function CatalogPage() {
   const [cameras, setCameras] = useState([]);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
+  const catalogGridRef = React.useRef(null);
 
   // Filters
   const [searchQuery, setSearchQuery] = useState('');
@@ -33,79 +34,23 @@ export default function CatalogPage() {
       ]);
       if (Array.isArray(camRes)) {
         setCameras(camRes);
-      } else if (camRes.success && Array.isArray(camRes.data)) {
+      } else if (camRes && camRes.success && Array.isArray(camRes.data)) {
         setCameras(camRes.data);
+      } else {
+        setCameras([]);
       }
 
       if (Array.isArray(catRes)) {
         setCategories(catRes);
-      } else if (catRes.success && Array.isArray(catRes.data)) {
+      } else if (catRes && catRes.success && Array.isArray(catRes.data)) {
         setCategories(catRes.data);
+      } else {
+        setCategories([]);
       }
-    } catch {
-      // Fallback mock data if API fails during initial setup
-      setCameras([
-        {
-          _id: 'fx3',
-          name: 'Sony FX3 Full-Frame Cinema Body',
-          brand: 'Sony',
-          dailyRate: 110,
-          depositAmount: 500,
-          condition: 'new',
-          averageRating: 5.0,
-          imageUrl: '/images/cinema_rig_onset.jpg',
-          category: { name: 'Cinema Cameras' },
-          specs: ['4K 120fps RAW', 'S-Cinetone', 'Active Cooling', 'Dual ISO 800/12800'],
-        },
-        {
-          _id: 'r5c',
-          name: 'Canon EOS R5 C 8K Hybrid Body',
-          brand: 'Canon',
-          dailyRate: 125,
-          depositAmount: 600,
-          condition: 'good',
-          averageRating: 4.9,
-          imageUrl: '/images/ezgif-1b32d6e0c8f85d1e-jpg/ezgif-frame-030.jpg',
-          category: { name: 'Mirrorless' },
-          specs: ['8K 60p RAW', '45.0 MP Stills', 'RF Lens Mount', 'Unlimited 8K Record'],
-        },
-        {
-          _id: 'komodo',
-          name: 'RED Komodo 6K Cinema Package',
-          brand: 'RED',
-          dailyRate: 210,
-          depositAmount: 1200,
-          condition: 'new',
-          averageRating: 5.0,
-          imageUrl: '/images/wireless_follow_focus.jpg',
-          category: { name: 'Cinema Cameras' },
-          specs: ['Super35 Global Shutter', '6K REDCODE RAW', 'Compact Cube Form', 'RED Color Science'],
-        },
-        {
-          _id: 'lens2470',
-          name: 'Sony FE 24-70mm f/2.8 GM II Lens',
-          brand: 'Sony',
-          dailyRate: 45,
-          depositAmount: 250,
-          condition: 'good',
-          averageRating: 4.8,
-          imageUrl: '/images/ezgif-1b32d6e0c8f85d1e-jpg/ezgif-frame-050.jpg',
-          category: { name: 'Lenses' },
-          specs: ['Constant f/2.8 Aperture', 'XA Optical Glass', 'De-clicked Iris Ring', 'Lightweight 695g'],
-        },
-        {
-          _id: 'drone',
-          name: 'DJI Mavic 3 Pro Cine Drone',
-          brand: 'DJI',
-          dailyRate: 150,
-          depositAmount: 700,
-          condition: 'good',
-          averageRating: 4.9,
-          imageUrl: '/images/ezgif-1b32d6e0c8f85d1e-jpg/ezgif-frame-070.jpg',
-          category: { name: 'Drones' },
-          specs: ['Hasselblad 4/3 CMOS', '5.1K Apple ProRes 422', '43 Min Flight Time', 'Omni Obstacle Sense'],
-        },
-      ]);
+    } catch (err) {
+      console.error('Failed to fetch MongoDB catalog:', err);
+      setCameras([]);
+      setCategories([]);
     } finally {
       setLoading(false);
     }
@@ -155,6 +100,31 @@ export default function CatalogPage() {
       if (sortBy === 'name') return a.name.localeCompare(b.name);
       return 0;
     });
+
+  // Week 8 Slide 21 & Week 7 Slide 13: True Event Delegation + element.dataset
+  useEffect(() => {
+    const container = catalogGridRef.current;
+    if (!container) return;
+
+    const handleDelegatedClick = (e) => {
+      // Find closest camera card child
+      const cardNode = e.target.closest('[data-camera-card="true"]');
+      if (!cardNode || !container.contains(cardNode)) return;
+
+      // Access dataset properties directly
+      const { cameraId, cameraName, dailyRate } = cardNode.dataset;
+
+      const actionBtn = e.target.closest('[data-action]');
+      const action = actionBtn ? actionBtn.dataset.action : 'card-inspect';
+
+      console.log(
+        `[Event Delegation] Ancestor container handled click -> Action: ${action}, ID: ${cameraId}, Name: "${cameraName}", Daily Rate: $${dailyRate}`
+      );
+    };
+
+    container.addEventListener('click', handleDelegatedClick);
+    return () => container.removeEventListener('click', handleDelegatedClick);
+  }, [filteredCameras]);
 
   const uniqueBrands = Array.from(new Set(cameras.map((c) => c.brand).filter(Boolean)));
 
@@ -354,7 +324,7 @@ export default function CatalogPage() {
             </button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div ref={catalogGridRef} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredCameras.map((cam) => (
               <CameraCard key={cam._id || cam.id} camera={cam} />
             ))}

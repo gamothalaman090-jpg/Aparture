@@ -17,10 +17,16 @@ export default function LoginPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     soundFx.playClickSound();
+
+    // Week 8 Slide 13: Native Form Submission handling via FormData API
+    const formData = new FormData(e.target);
+    const emailVal = formData.get('email') || email;
+    const passwordVal = formData.get('password') || password;
+
     setSubmitting(true);
 
     try {
-      const user = await login(email, password);
+      const user = await login(emailVal, passwordVal);
       showToast(`Welcome back, ${user.name}!`, 'success');
       if (user.role === 'admin') {
         navigate('/admin');
@@ -82,6 +88,7 @@ export default function LoginPage() {
                 <span>EMAIL ADDRESS</span>
               </label>
               <input
+                name="email"
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -97,6 +104,7 @@ export default function LoginPage() {
                 <span>PASSWORD</span>
               </label>
               <input
+                name="password"
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}

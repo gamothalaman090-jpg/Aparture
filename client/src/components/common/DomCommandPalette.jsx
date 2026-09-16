@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import {
   Search,
   Command,
@@ -16,7 +16,9 @@ import {
   VolumeX,
 } from 'lucide-react';
 import { soundFx } from '../../services/audioService.js';
-import { createCameraFlashDOM, createParticleExplosion } from '../../utils/domFx.js';
+import { useAuth } from '../../context/AuthContext.jsx';
+import api from '../../services/api.js';
+import { createCameraFlashDOM, createParticleExplosion, showDOMTooltip } from '../../utils/domFx.js';
 
 const QUICK_ACTIONS = [
   { id: 'catalog', title: 'Browse Full Gear Catalog', path: '/catalog', category: 'Navigation', icon: Camera },
@@ -27,23 +29,44 @@ const QUICK_ACTIONS = [
   { id: 'fx_particles', title: 'Fire DOM Particle Explosion', action: 'particles', category: 'DOM Tools', icon: Sparkles },
 ];
 
-const POPULAR_CAMERAS = [
-  { name: 'Sony FX3 Full-Frame Cinema Body', brand: 'Sony', rate: '$110/day', path: '/catalog' },
-  { name: 'RED Komodo 6K Cinema Package', brand: 'RED', rate: '$195/day', path: '/catalog' },
-  { name: 'ARRI Alexa Mini LF Cinema Kit', brand: 'ARRI', rate: '$380/day', path: '/catalog' },
-  { name: 'Canon EOS R5 C 8K Hybrid Body', brand: 'Canon', rate: '$95/day', path: '/catalog' },
-  { name: 'Blackmagic Cinema Camera 6K Pro', brand: 'Blackmagic', rate: '$75/day', path: '/catalog' },
-];
-
 export default function DomCommandPalette() {
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedIndex, setSelectedIndex] = useState(0);
+  const [dbCameras, setDbCameras] = useState([]);
   const inputRef = useRef(null);
+  const resultsContainerRef = useRef(null);
+  const paletteButtonRef = useRef(null);
   const navigate = useNavigate();
+  const location = useLocation();
+  const { isAuthenticated } = useAuth();
 
-  // Global DOM Keyboard Event Listener for Cmd+K / Ctrl+K and Escape
+  // Hide palette on landing page ('/') and when not logged in
+  const isAllowed = isAuthenticated && location.pathname !== '/';
+
+  // Fetch real MongoDB inventory when opened
   useEffect(() => {
+    if (isOpen) {
+      api
+        .get('/cameras')
+        .then((res) => {
+          const list = Array.isArray(res) ? res : Array.isArray(res?.data) ? res.data : [];
+          setDbCameras(
+            list.map((c) => ({
+              name: c.name,
+              brand: c.brand || 'Aperture',
+              rate: `$${c.dailyRate}/day`,
+              path: `/catalog/${c._id || c.id}`,
+            }))
+          );
+        })
+        .catch(() => setDbCameras([]));
+    }
+  }, [isOpen]);
+
+  // Week 8 Slide 14: Listener Option { capture: true } for global keyboard interception
+  useEffect(() => {
+    if (!isAllowed) return;
+
     const handleKeyDown = (e) => {
       // Toggle palette on Cmd+K or Ctrl+K
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
@@ -53,20 +76,34 @@ export default function DomCommandPalette() {
       }
 
       // Close on Escape
-      if (e.key === 'Escape') {
+      if (e.key === 'Escape' && isOpen) {
         setIsOpen(false);
       }
     };
 
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
+    // Global listener registered in the CAPTURE phase ({ capture: true })
+    window.addEventListener('keydown', handleKeyDown, { capture: true });
+    return () => window.removeEventListener('keydown', handleKeyDown, { capture: true });
+  }, [isOpen, isAllowed]);
+
+  // Week 8 Slide 14: Listener Option { once: true } for one-shot hint on floating trigger button
+  useEffect(() => {
+    const buttonEl = paletteButtonRef.current;
+    if (!buttonEl) return;
+
+    const handleOneShotHint = () => {
+      soundFx.playSnapSound();
+      showDOMTooltip(buttonEl, 'PRO-TIP: Press CMD+K anytime', { duration: 2200, color: '#06b6d4' });
+    };
+
+    buttonEl.addEventListener('mouseenter', handleOneShotHint, { once: true });
+    return () => buttonEl.removeEventListener('mouseenter', handleOneShotHint);
+  }, [isOpen]);
 
   // Focus input when opened
   useEffect(() => {
     if (isOpen) {
       setSearchQuery('');
-      setSelectedIndex(0);
       setTimeout(() => inputRef.current?.focus(), 50);
     }
   }, [isOpen]);
@@ -77,7 +114,7 @@ export default function DomCommandPalette() {
       item.category.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const filteredCameras = POPULAR_CAMERAS.filter(
+  const filteredCameras = dbCameras.filter(
     (cam) =>
       cam.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       cam.brand.toLowerCase().includes(searchQuery.toLowerCase())
@@ -87,6 +124,105 @@ export default function DomCommandPalette() {
     ...filteredActions.map((a) => ({ ...a, type: 'action' })),
     ...filteredCameras.map((c) => ({ ...c, type: 'camera' })),
   ];
+
+  // Week 7 Slides 17-18: DOM Sibling & Parent Traversal keyboard navigation engine
+  const handleInputKeyDown = (e) => {
+    const container = resultsContainerRef.current;
+    if (!container) return;
+
+    const items = Array.from(container.querySelectorAll('[data-palette-item="true"]'));
+    if (items.length === 0) return;
+
+    let currentActive = container.querySelector('[data-active="true"]');
+
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      let nextTarget = null;
+
+      if (!currentActive) {
+        // Traversal 1: firstElementChild on results container
+        const firstSection = container.firstElementChild;
+        if (firstSection) {
+          nextTarget = firstSection.querySelector('[data-palette-item="true"]');
+        }
+        if (!nextTarget) nextTarget = items[0];
+      } else {
+        // Traversal 2: nextElementSibling to move to adjacent item node
+        let sibling = currentActive.nextElementSibling;
+        while (sibling && !sibling.matches('[data-palette-item="true"]')) {
+          sibling = sibling.nextElementSibling;
+        }
+        if (!sibling) {
+          // Traversal 3: parentElement traversal to find next category section block
+          const parentBlock = currentActive.parentElement; // item list container
+          const sectionBlock = parentBlock ? parentBlock.parentElement : null; // section wrapper div
+          const nextSection = sectionBlock ? sectionBlock.nextElementSibling : null;
+          if (nextSection) {
+            nextTarget = nextSection.querySelector('[data-palette-item="true"]');
+          }
+        } else {
+          nextTarget = sibling;
+        }
+        if (!nextTarget) nextTarget = items[0]; // loop back to top
+      }
+
+      items.forEach((el) => {
+        el.removeAttribute('data-active');
+        el.classList.remove('bg-cyan-500/20', 'border-cyan-500/40');
+      });
+
+      if (nextTarget) {
+        nextTarget.setAttribute('data-active', 'true');
+        nextTarget.classList.add('bg-cyan-500/20', 'border-cyan-500/40');
+        nextTarget.scrollIntoView({ block: 'nearest' });
+        soundFx.playDialTickSound(1.2);
+      }
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      let prevTarget = null;
+
+      if (currentActive) {
+        // Traversal 4: previousElementSibling to move to preceding item node
+        let sibling = currentActive.previousElementSibling;
+        while (sibling && !sibling.matches('[data-palette-item="true"]')) {
+          sibling = sibling.previousElementSibling;
+        }
+        if (!sibling) {
+          // ParentElement traversal to jump to previous section
+          const parentBlock = currentActive.parentElement;
+          const sectionBlock = parentBlock ? parentBlock.parentElement : null;
+          const prevSection = sectionBlock ? sectionBlock.previousElementSibling : null;
+          if (prevSection) {
+            const sectionItems = prevSection.querySelectorAll('[data-palette-item="true"]');
+            if (sectionItems.length > 0) prevTarget = sectionItems[sectionItems.length - 1];
+          }
+        } else {
+          prevTarget = sibling;
+        }
+      }
+
+      if (!prevTarget) prevTarget = items[items.length - 1];
+
+      items.forEach((el) => {
+        el.removeAttribute('data-active');
+        el.classList.remove('bg-cyan-500/20', 'border-cyan-500/40');
+      });
+
+      if (prevTarget) {
+        prevTarget.setAttribute('data-active', 'true');
+        prevTarget.classList.add('bg-cyan-500/20', 'border-cyan-500/40');
+        prevTarget.scrollIntoView({ block: 'nearest' });
+        soundFx.playDialTickSound(0.9);
+      }
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      if (currentActive) {
+        currentActive.click();
+      } else if (items.length > 0) {
+        items[0].click();
+      }
+    }
+  };
 
   const handleSelect = (item, e) => {
     soundFx.playSnapSound();
@@ -107,9 +243,15 @@ export default function DomCommandPalette() {
     }
   };
 
+  // Do not render palette trigger or modal on landing page ('/') or when logged out
+  if (!isAllowed) {
+    return null;
+  }
+
   if (!isOpen) {
     return (
       <button
+        ref={paletteButtonRef}
         onClick={() => {
           soundFx.playClickSound();
           setIsOpen(true);
@@ -141,11 +283,9 @@ export default function DomCommandPalette() {
             ref={inputRef}
             type="text"
             value={searchQuery}
-            onChange={(e) => {
-              setSearchQuery(e.target.value);
-              setSelectedIndex(0);
-            }}
-            placeholder="Type a command, camera, or action (e.g. 'Sony', 'Shutter', 'Cart')..."
+            onChange={(e) => setSearchQuery(e.target.value)}
+            onKeyDown={handleInputKeyDown}
+            placeholder="Type a command, camera, or action (Use ↑↓ arrows to navigate)..."
             className="w-full bg-transparent text-white placeholder-slate-500 font-mono text-sm focus:outline-none"
           />
           <button
@@ -157,7 +297,7 @@ export default function DomCommandPalette() {
         </div>
 
         {/* Results List */}
-        <div className="p-3 overflow-y-auto space-y-4 max-h-[60vh]">
+        <div ref={resultsContainerRef} className="p-3 overflow-y-auto space-y-4 max-h-[60vh]">
           {/* Quick Actions */}
           {filteredActions.length > 0 && (
             <div>
@@ -170,6 +310,7 @@ export default function DomCommandPalette() {
                   return (
                     <button
                       key={action.id}
+                      data-palette-item="true"
                       onClick={(e) => handleSelect(action, e)}
                       className="w-full flex items-center justify-between p-3 rounded-2xl text-left transition-all hover:bg-cyan-500/10 hover:border-cyan-500/30 border border-transparent group"
                     >
@@ -202,6 +343,7 @@ export default function DomCommandPalette() {
                 {filteredCameras.map((cam, idx) => (
                   <button
                     key={idx}
+                    data-palette-item="true"
                     onClick={(e) => handleSelect(cam, e)}
                     className="w-full flex items-center justify-between p-3 rounded-2xl text-left transition-all hover:bg-amber-500/10 hover:border-amber-500/30 border border-transparent group"
                   >
@@ -237,7 +379,10 @@ export default function DomCommandPalette() {
               <kbd className="px-1.5 py-0.5 rounded bg-white/10 text-white text-[10px]">ESC</kbd> to close
             </span>
             <span>
-              <kbd className="px-1.5 py-0.5 rounded bg-white/10 text-white text-[10px]">↵</kbd> to select
+              <kbd className="px-1.5 py-0.5 rounded bg-white/10 text-white text-[10px]">↑↓</kbd> navigate
+            </span>
+            <span>
+              <kbd className="px-1.5 py-0.5 rounded bg-white/10 text-white text-[10px]">↵</kbd> select
             </span>
           </div>
           <span className="text-cyan-400 font-bold uppercase text-[10px]">Aperture DOM Palette</span>

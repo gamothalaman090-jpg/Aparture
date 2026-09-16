@@ -29,36 +29,9 @@ export default function AdminOrdersPage() {
       } else if (Array.isArray(res)) {
         setBookings(res);
       }
-    } catch {
-      // Mock data fallback
-      setBookings([
-        {
-          _id: 'b101',
-          bookingNumber: 'BK-928410',
-          status: 'confirmed',
-          startDate: new Date().toISOString(),
-          endDate: new Date(Date.now() + 3 * 86400000).toISOString(),
-          totalDays: 3,
-          rentalFee: 330,
-          depositAmount: 500,
-          totalPrice: 830,
-          user: { name: 'Alex Rivera', email: 'alex@creatives.com' },
-          camera: { name: 'Sony FX3 Cinema Camera', brand: 'Sony' },
-        },
-        {
-          _id: 'b102',
-          bookingNumber: 'BK-491203',
-          status: 'ongoing',
-          startDate: new Date(Date.now() - 2 * 86400000).toISOString(),
-          endDate: new Date(Date.now() + 2 * 86400000).toISOString(),
-          totalDays: 4,
-          rentalFee: 500,
-          depositAmount: 600,
-          totalPrice: 1100,
-          user: { name: 'Sophia Chen', email: 'sophia@filmmaker.org' },
-          camera: { name: 'Canon EOS R5 C Hybrid Body', brand: 'Canon' },
-        },
-      ]);
+    } catch (err) {
+      showToast(err.message || 'Error fetching reservations', 'error');
+      setBookings([]);
     } finally {
       setLoading(false);
     }
@@ -75,10 +48,19 @@ export default function AdminOrdersPage() {
 
   const filteredBookings = bookings.filter((b) => {
     const matchesTab = activeTab === 'all' || b.status?.toLowerCase() === activeTab;
+    const searchLower = searchQuery.toLowerCase();
+    const customerName = b.userId?.name || b.user?.name || '';
+    const customerEmail = b.userId?.email || b.user?.email || '';
+    const cameraName = b.cameraId?.name || b.camera?.name || '';
+    const bookingNum = b.bookingNumber || b._id || '';
+
     const matchesSearch =
-      b.bookingNumber?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      b.user?.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      b.camera?.name?.toLowerCase().includes(searchQuery.toLowerCase());
+      !searchQuery ||
+      bookingNum.toLowerCase().includes(searchLower) ||
+      customerName.toLowerCase().includes(searchLower) ||
+      customerEmail.toLowerCase().includes(searchLower) ||
+      cameraName.toLowerCase().includes(searchLower);
+
     return matchesTab && matchesSearch;
   });
 
@@ -162,10 +144,10 @@ export default function AdminOrdersPage() {
                     <tr key={b._id} className="hover:bg-white/5 transition-colors">
                       <td className="py-3.5 pl-2 font-bold text-white">#{b.bookingNumber || b._id?.slice(-6)}</td>
                       <td className="py-3.5 text-slate-300">
-                        <div className="font-bold text-white">{b.user?.name || 'Customer'}</div>
-                        <div className="text-[10px] text-slate-500">{b.user?.email}</div>
+                        <div className="font-bold text-white">{b.userId?.name || b.user?.name || 'Customer'}</div>
+                        <div className="text-[10px] text-slate-500">{b.userId?.email || b.user?.email}</div>
                       </td>
-                      <td className="py-3.5 text-cyan-400 font-bold">{b.camera?.name || 'Gear Item'}</td>
+                      <td className="py-3.5 text-cyan-400 font-bold">{b.cameraId?.name || b.camera?.name || 'Gear Item'}</td>
                       <td className="py-3.5 text-slate-400">{formatDate(b.startDate)} &rarr; {formatDate(b.endDate)}</td>
                       <td className="py-3.5 text-amber-400 font-bold">{formatCurrency(b.rentalFee)}</td>
                       <td className="py-3.5 text-slate-300">{formatCurrency(b.depositAmount)}</td>

@@ -75,6 +75,39 @@ Open your browser to `http://localhost:3000`.
 
 ---
 
+## 📁 Repository Directory Structure
+
+```
+Ecommerce/
+├── client/                      # React 18 + Vite Frontend Application
+│   ├── src/
+│   │   ├── components/          # Reusable UI & Admin Control Components
+│   │   │   ├── admin/           # OrderStatusModal, AdminLayout, Inventory Forms
+│   │   │   ├── catalog/         # CameraCard (Delegation/Dataset), FilterBar, ReviewSection
+│   │   │   ├── common/          # DomCommandPalette, DomTiltCard, CustomCursor
+│   │   │   └── landing/         # FloatingNavbar, HeroSection, OpticalViewer
+│   │   ├── context/             # AuthContext, CartContext, ToastContext
+│   │   ├── pages/               # React Router Page Views
+│   │   │   ├── admin/           # AdminDashboard, AdminInventory, AdminOrders, AdminCategories
+│   │   │   ├── CameraDetailPage.jsx
+│   │   │   ├── CatalogPage.jsx
+│   │   │   ├── CartPage.jsx & CheckoutPage.jsx
+│   │   │   ├── LoginPage.jsx & RegisterPage.jsx
+│   │   │   ├── OrderHistoryPage.jsx & OrderConfirmationPage.jsx
+│   │   │   └── NotFoundPage.jsx # 404 Cinema Catch-All Route
+│   │   ├── services/            # Axios API Interceptor & Web Audio Sound Engine
+│   │   └── utils/               # domFx.js (Vanilla DOM Utilities) & formatters.js
+├── server/                      # Node.js + Express + Mongoose Backend API
+│   ├── config/                  # Database Connection Configuration
+│   ├── controllers/             # Route Controllers
+│   ├── domain/                  # OOP Domain Layer (RentableItem, CameraDomain, UserDomain, BookingCalculator)
+│   ├── models/                  # Mongoose Data Schemas (User, Camera, Category, Booking, Review)
+│   ├── routes/                  # Express RESTful Routes
+│   ├── seed/                    # Database Seeder (npm run seed)
+│   └── services/                # Backend Business Services
+└── README.md
+```
+
 ## 🧠 Object-Oriented Programming (OOP) Architecture
 
 The application enforces strict Object-Oriented Programming principles within the domain business logic layer (`server/domain/`), ensuring clean separation of concerns, code reusability, and encapsulation.
@@ -261,6 +294,22 @@ export class AdminUser extends UserDomain {
 | **`.reduce()`** | [`CartContext.jsx`](file:///d:/Projects/Ecommerce/client/src/context/CartContext.jsx) | Compute cart totals for rental fee subtotals, security deposit holds, and grand checkout total |
 | **`.map()`** | [`cameraService.js`](file:///d:/Projects/Ecommerce/server/services/cameraService.js#L29) | Instantiate `CameraDomain` OOP objects from Mongoose database models |
 | **`.sort()`** | [`CatalogPage.jsx`](file:///d:/Projects/Ecommerce/client/src/pages/CatalogPage.jsx) | Order inventory by daily rate (low to high, high to low), rating, and alphabetical name |
+
+---
+
+## ⚡ Vanilla JavaScript DOM & Events Architecture
+
+The frontend (`client/`) integrates direct Vanilla JavaScript DOM manipulation and Event engine techniques taught in Week 7 (JavaScript DOM) and Week 8 (JavaScript Events).
+
+| Concept & Technique | Lecture Source | Primary File Implementation | Description & Usage Pattern |
+|---|---|---|---|
+| **Custom Events (`CustomEvent` + `dispatchEvent`)** | Week 8, Slides 22–23 | [`CameraCard.jsx`](file:///d:/Projects/Ecommerce/client/src/components/catalog/CameraCard.jsx), [`FloatingNavbar.jsx`](file:///d:/Projects/Ecommerce/client/src/components/landing/FloatingNavbar.jsx) | Dispatches custom bubbling events (`cart:itemAdded`, `camera:selected`) with `detail` payload; listened to on `document` by `FloatingNavbar` to animate cart badges. |
+| **True Event Delegation** | Week 8, Slide 21 | [`CatalogPage.jsx`](file:///d:/Projects/Ecommerce/client/src/pages/CatalogPage.jsx) | Attaches a single delegated click listener on ancestor grid container (`catalogGridRef`); uses `e.target.closest('[data-camera-card="true"]')` and `container.contains()` to handle dynamic cards. |
+| **Dataset API (`element.dataset`)** | Week 7, Slide 13 | [`CameraCard.jsx`](file:///d:/Projects/Ecommerce/client/src/components/catalog/CameraCard.jsx), [`CatalogPage.jsx`](file:///d:/Projects/Ecommerce/client/src/pages/CatalogPage.jsx) | Attaches `data-camera-id`, `data-camera-name`, `data-daily-rate`, and `data-action` to cards and buttons; read via `cardNode.dataset` inside delegated event handlers. |
+| **DOM Insertion Methods (`append`, `prepend`, `replaceWith`)** | Week 7, Slides 15–16 | [`domFx.js`](file:///d:/Projects/Ecommerce/client/src/utils/domFx.js) | Replaces legacy `appendChild`/`removeChild` with modern DOM insertion APIs (`.append()`, `.prepend()`, `.replaceWith()`, and `.remove()`) for particle bursts, shutter flashes, and tooltips. |
+| **Sibling & Parent Traversal** | Week 7, Slides 17–18 | [`DomCommandPalette.jsx`](file:///d:/Projects/Ecommerce/client/src/components/common/DomCommandPalette.jsx) | Navigates command list results via keyboard (ArrowUp / ArrowDown) traversing DOM tree nodes directly using `firstElementChild`, `nextElementSibling`, `previousElementSibling`, and `parentElement`. |
+| **Event Listener Options (`{ once: true }`, `{ capture: true }`)** | Week 8, Slide 14 | [`DomCommandPalette.jsx`](file:///d:/Projects/Ecommerce/client/src/components/common/DomCommandPalette.jsx) | Uses `{ capture: true }` for global keyboard shortcut interception (`Cmd+K`, `Escape`) during the capture phase, and `{ once: true }` for one-shot onboarding tooltip hints. |
+| **Native Form Submission (`FormData`)** | Week 8, Slide 13 | [`LoginPage.jsx`](file:///d:/Projects/Ecommerce/client/src/pages/LoginPage.jsx), [`RegisterPage.jsx`](file:///d:/Projects/Ecommerce/client/src/pages/RegisterPage.jsx) | Processes form submissions using `new FormData(event.target)` and `formData.get('email')` inside submit handlers with `event.preventDefault()`. |
 
 ---
 

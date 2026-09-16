@@ -21,7 +21,15 @@ export default function RegisterPage() {
     e.preventDefault();
     soundFx.playClickSound();
 
-    if (password !== confirmPassword) {
+    // Week 8 Slide 13: Native Form Submission handling via FormData API
+    const formData = new FormData(e.target);
+    const nameVal = formData.get('name') || name;
+    const emailVal = formData.get('email') || email;
+    const phoneVal = formData.get('phone') || phone;
+    const passwordVal = formData.get('password') || password;
+    const confirmPasswordVal = formData.get('confirmPassword') || confirmPassword;
+
+    if (passwordVal !== confirmPasswordVal) {
       showToast('Passwords do not match', 'error');
       return;
     }
@@ -29,7 +37,7 @@ export default function RegisterPage() {
     setSubmitting(true);
 
     try {
-      const user = await register(name, email, password, phone);
+      const user = await register(nameVal, emailVal, passwordVal, phoneVal);
       showToast(`Account created! Welcome to Aperture, ${user.name}!`, 'success');
       navigate('/catalog');
     } catch (err) {
@@ -75,6 +83,7 @@ export default function RegisterPage() {
                 <span>FULL NAME</span>
               </label>
               <input
+                name="name"
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
@@ -90,6 +99,7 @@ export default function RegisterPage() {
                 <span>EMAIL ADDRESS</span>
               </label>
               <input
+                name="email"
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -105,6 +115,7 @@ export default function RegisterPage() {
                 <span>PHONE NUMBER</span>
               </label>
               <input
+                name="phone"
                 type="tel"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
@@ -119,6 +130,7 @@ export default function RegisterPage() {
                 <span>PASSWORD</span>
               </label>
               <input
+                name="password"
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -135,6 +147,7 @@ export default function RegisterPage() {
                 <span>CONFIRM PASSWORD</span>
               </label>
               <input
+                name="confirmPassword"
                 type="password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}

@@ -19,10 +19,35 @@ export default function CameraCard({ camera }) {
     createParticleExplosion(e, { count: 18 });
     addToCart(camera);
     showToast(`Added ${camera.name} to rental cart!`, 'success');
+
+    // Week 8 Slides 22-23: Dispatch CustomEvent with detail payload
+    const customEvent = new CustomEvent('cart:itemAdded', {
+      detail: {
+        cameraId: camera._id || camera.id,
+        name: camera.name,
+        dailyRate: camera.dailyRate,
+        timestamp: Date.now(),
+      },
+      bubbles: true,
+      cancelable: true,
+    });
+    document.dispatchEvent(customEvent);
   };
 
   const handleCardClick = () => {
     soundFx.playClickSound();
+
+    // Week 8 Slides 22-23: Dispatch CustomEvent when camera card is selected
+    const customEvent = new CustomEvent('camera:selected', {
+      detail: {
+        cameraId: camera._id || camera.id,
+        name: camera.name,
+        brand: camera.brand,
+      },
+      bubbles: true,
+      cancelable: true,
+    });
+    document.dispatchEvent(customEvent);
   };
 
   const imageUrl = camera.imageUrl || '/images/cinema_rig_onset.jpg';
@@ -30,6 +55,10 @@ export default function CameraCard({ camera }) {
   return (
     <DomTiltCard
       onClick={handleCardClick}
+      data-camera-card="true"
+      data-camera-id={camera._id || camera.id}
+      data-camera-name={camera.name}
+      data-daily-rate={camera.dailyRate}
       className="glass-panel-cinema rounded-3xl overflow-hidden group hover:border-cyan-500/50 transition-all duration-300 flex flex-col justify-between"
     >
       <div>
@@ -104,6 +133,7 @@ export default function CameraCard({ camera }) {
         <div className="flex items-center space-x-2">
           <button
             onClick={handleQuickAdd}
+            data-action="quick-add"
             title="Quick add to cart"
             className="p-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-cyan-400 border border-white/10 hover:border-cyan-400/50 transition-all"
           >
@@ -112,6 +142,7 @@ export default function CameraCard({ camera }) {
           
           <Link
             to={`/catalog/${camera._id || camera.id}`}
+            data-action="view-details"
             className="px-3.5 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold text-xs font-mono uppercase tracking-wider flex items-center space-x-1 shadow-[0_0_10px_rgba(6,182,212,0.4)]"
           >
             <span>View</span>

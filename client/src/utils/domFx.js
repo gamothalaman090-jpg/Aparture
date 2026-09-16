@@ -1,7 +1,8 @@
 /**
  * Vanilla JavaScript DOM Utility Engine
  * Direct DOM manipulation for high-performance physics, particle bursts,
- * camera shutter flash effects, and dynamic coordinate calculations.
+ * camera shutter flash effects, modern DOM node insertion (append, prepend, replaceWith),
+ * and dynamic coordinate calculations.
  */
 
 /**
@@ -38,7 +39,9 @@ export function createParticleExplosion(target, options = {}) {
   // Create container for particle batch
   const container = document.createElement('div');
   container.className = 'pointer-events-none fixed inset-0 overflow-hidden z-[99999]';
-  document.body.appendChild(container);
+  
+  // Week 7 Slides 15-16: Use DOM Insertion Method append() instead of appendChild()
+  document.body.append(container);
 
   const particles = [];
 
@@ -64,7 +67,8 @@ export function createParticleExplosion(target, options = {}) {
       opacity: 1;
     `;
 
-    container.appendChild(particle);
+    // Week 7 Slides 15-16: Modern DOM append()
+    container.append(particle);
 
     particles.push({
       element: particle,
@@ -87,10 +91,8 @@ export function createParticleExplosion(target, options = {}) {
     const progress = (timestamp - startTime) / duration;
 
     if (progress >= 1) {
-      // Clean up DOM elements safely
-      if (container.parentNode) {
-        container.parentNode.removeChild(container);
-      }
+      // Clean up DOM node using element.remove()
+      container.remove();
       return;
     }
 
@@ -114,7 +116,7 @@ export function createParticleExplosion(target, options = {}) {
 }
 
 /**
- * Triggers a photographic optical shutter flash overlay dynamically appended to the DOM.
+ * Triggers a photographic optical shutter flash overlay dynamically inserted into the DOM.
  */
 export function createCameraFlashDOM(options = {}) {
   const { color = 'rgba(255, 255, 255, 0.95)', duration = 300 } = options;
@@ -133,7 +135,8 @@ export function createCameraFlashDOM(options = {}) {
     transition: opacity ${duration}ms cubic-bezier(0.1, 0.9, 0.2, 1);
   `;
 
-  document.body.appendChild(flashOverlay);
+  // Week 7 Slides 15-16: Use prepend() to insert at top of body before all elements
+  document.body.prepend(flashOverlay);
 
   // Micro-shake effect on viewport
   const originalTransform = document.body.style.transform;
@@ -145,9 +148,7 @@ export function createCameraFlashDOM(options = {}) {
   }, 30);
 
   setTimeout(() => {
-    if (flashOverlay.parentNode) {
-      flashOverlay.parentNode.removeChild(flashOverlay);
-    }
+    flashOverlay.remove();
   }, duration + 50);
 }
 
@@ -181,7 +182,9 @@ export function attach3DTilt(element, options = {}) {
     z-index: 10;
   `;
   element.style.position = element.style.position || 'relative';
-  element.appendChild(glare);
+
+  // Week 7 Slides 15-16: Use append() for glare node insertion
+  element.append(glare);
 
   let rafId = null;
 
@@ -223,14 +226,13 @@ export function attach3DTilt(element, options = {}) {
     if (rafId) cancelAnimationFrame(rafId);
     element.removeEventListener('mousemove', handleMouseMove);
     element.removeEventListener('mouseleave', handleMouseLeave);
-    if (glare.parentNode) {
-      glare.parentNode.removeChild(glare);
-    }
+    glare.remove();
   };
 }
 
 /**
  * Creates and displays a floating badge/tooltip positioned dynamically using getBoundingClientRect().
+ * Demonstrates element.replaceWith() when updating an existing active tooltip.
  */
 export function showDOMTooltip(targetElement, message, options = {}) {
   if (!targetElement) return;
@@ -238,9 +240,10 @@ export function showDOMTooltip(targetElement, message, options = {}) {
   const { duration = 1800, color = '#06b6d4' } = options;
   const rect = targetElement.getBoundingClientRect();
 
-  const tooltip = document.createElement('div');
-  tooltip.textContent = message;
-  tooltip.style.cssText = `
+  const newTooltip = document.createElement('div');
+  newTooltip.id = 'aperture-dom-tooltip';
+  newTooltip.textContent = message;
+  newTooltip.style.cssText = `
     position: fixed;
     left: ${rect.left + rect.width / 2}px;
     top: ${rect.top - 8}px;
@@ -262,18 +265,24 @@ export function showDOMTooltip(targetElement, message, options = {}) {
     transition: all 200ms cubic-bezier(0.16, 1, 0.3, 1);
   `;
 
-  document.body.appendChild(tooltip);
+  // Week 7 Slide 16: Check for active existing tooltip and use replaceWith()
+  const existingTooltip = document.getElementById('aperture-dom-tooltip');
+  if (existingTooltip) {
+    existingTooltip.replaceWith(newTooltip);
+  } else {
+    document.body.append(newTooltip);
+  }
 
   requestAnimationFrame(() => {
-    tooltip.style.opacity = '1';
-    tooltip.style.transform = 'translate(-50%, -120%) scale(1)';
+    newTooltip.style.opacity = '1';
+    newTooltip.style.transform = 'translate(-50%, -120%) scale(1)';
   });
 
   setTimeout(() => {
-    tooltip.style.opacity = '0';
-    tooltip.style.transform = 'translate(-50%, -140%) scale(0.9)';
+    newTooltip.style.opacity = '0';
+    newTooltip.style.transform = 'translate(-50%, -140%) scale(0.9)';
     setTimeout(() => {
-      if (tooltip.parentNode) tooltip.parentNode.removeChild(tooltip);
+      newTooltip.remove();
     }, 250);
   }, duration);
 }

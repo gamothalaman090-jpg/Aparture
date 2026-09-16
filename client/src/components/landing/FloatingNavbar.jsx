@@ -30,6 +30,33 @@ export default function FloatingNavbar() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, [lastScrollY]);
 
+  // Week 8 Slides 22-23: Listen to CustomEvent dispatched on document
+  useEffect(() => {
+    const handleCartItemAdded = (e) => {
+      const { cameraId, name, dailyRate } = e.detail || {};
+      console.log(`[CustomEvent Received] cart:itemAdded -> Item "${name}" (${cameraId}) at $${dailyRate}/day`);
+      
+      const badge = document.getElementById('navbar-cart-badge');
+      if (badge) {
+        badge.classList.add('scale-125', 'bg-amber-400');
+        setTimeout(() => badge.classList.remove('scale-125', 'bg-amber-400'), 400);
+      }
+    };
+
+    const handleCameraSelected = (e) => {
+      const { name, brand } = e.detail || {};
+      console.log(`[CustomEvent Received] camera:selected -> Camera "${name}" (${brand || 'Aperture'})`);
+    };
+
+    document.addEventListener('cart:itemAdded', handleCartItemAdded);
+    document.addEventListener('camera:selected', handleCameraSelected);
+
+    return () => {
+      document.removeEventListener('cart:itemAdded', handleCartItemAdded);
+      document.removeEventListener('camera:selected', handleCameraSelected);
+    };
+  }, []);
+
   const handleNavClick = () => {
     soundFx.playClickSound();
   };
@@ -99,7 +126,7 @@ export default function FloatingNavbar() {
           >
             <ShoppingBag className="w-4 h-4" />
             {cartTotals.itemCount > 0 && (
-              <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-cyan-400 text-black text-[9px] font-mono font-extrabold flex items-center justify-center shadow-[0_0_8px_rgba(6,182,212,0.8)]">
+              <span id="navbar-cart-badge" className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-cyan-400 text-black text-[9px] font-mono font-extrabold flex items-center justify-center shadow-[0_0_8px_rgba(6,182,212,0.8)] transition-all duration-300">
                 {cartTotals.itemCount}
               </span>
             )}

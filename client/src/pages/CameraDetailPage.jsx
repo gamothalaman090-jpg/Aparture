@@ -59,62 +59,36 @@ export default function CameraDetailPage() {
     setLoading(true);
     try {
       const res = await api.get(`/cameras/${id}`);
-      if (res.success && res.data) {
-        setCamera(res.data);
+      let foundCamera = null;
+      if (res && (res._id || res.id)) {
+        foundCamera = res;
+      } else if (res && res.data && (res.data._id || res.data.id)) {
+        foundCamera = res.data;
       }
+
+      if (foundCamera) {
+        setCamera(foundCamera);
+      } else {
+        throw new Error('Invalid camera response');
+      }
+
       // Fetch reviews
       try {
         const revRes = await api.get(`/reviews/camera/${id}`);
-        if (revRes.success && revRes.data) {
+        if (Array.isArray(revRes)) {
+          setReviews(revRes);
+        } else if (revRes && Array.isArray(revRes.data)) {
           setReviews(revRes.data);
+        } else {
+          setReviews([]);
         }
       } catch {
-        // Mock reviews fallback
-        setReviews([
-          {
-            _id: 'r1',
-            user: { name: 'David Fincher' },
-            rating: 5,
-            comment: 'Flawless sensor calibration. Clean RAW output on set for 4-day commercial shoot.',
-            createdAt: new Date().toISOString(),
-          },
-          {
-            _id: 'r2',
-            user: { name: 'Elena Rostova' },
-            rating: 5,
-            comment: 'Arrived packaged in heavy-duty flight case. All cables and de-clicked lenses included.',
-            createdAt: new Date().toISOString(),
-          },
-        ]);
+        setReviews([]);
       }
     } catch {
-      // Mock camera detail fallback
-      setCamera({
-        _id: id,
-        name: 'Sony FX3 Full-Frame Cinema Body',
-        brand: 'Sony',
-        dailyRate: 110,
-        depositAmount: 500,
-        condition: 'new',
-        stockQuantity: 4,
-        averageRating: 5.0,
-        description:
-          'Full-frame 4K 120fps Cinema Line camera with S-Cinetone, active cooling system for unlimited recording, and dual native ISO 800/12800. Perfect for handheld, gimbal, and drone cinema rigs.',
-        specs: [
-          'Full-Frame 12.1MP Exmor R CMOS Sensor',
-          'UHD 4K 120p / FHD 240p RAW Output',
-          'S-Cinetone, S-Log3, HLG Gamut',
-          'Active Internal Cooling Fan System',
-          'Dual CFexpress Type A / SD Card Slots',
-          'Dual Native ISO 800 / 12,800',
-        ],
-        category: { name: 'Cinema Cameras' },
-        images: [
-          '/images/cinema_rig_onset.jpg',
-          '/images/ezgif-1b32d6e0c8f85d1e-jpg/ezgif-frame-020.jpg',
-          '/images/wireless_follow_focus.jpg',
-        ],
-      });
+      // Item not found in MongoDB
+      setCamera(null);
+      setReviews([]);
     } finally {
       setLoading(false);
     }
@@ -151,6 +125,7 @@ export default function CameraDetailPage() {
   const rentalFee = (camera?.dailyRate || 0) * days;
   const deposit = camera?.depositAmount || 0;
   const grandTotal = rentalFee + deposit;
+  const safeReviews = Array.isArray(reviews) ? reviews : [];
 
   if (loading) {
     return (
@@ -266,11 +241,11 @@ export default function CameraDetailPage() {
                   <Award className="w-5 h-5 text-amber-400" />
                   <span>Cinematographer Verified Reviews</span>
                 </h3>
-                <span className="text-xs font-mono text-slate-400">{reviews.length} Verified Reviews</span>
+                <span className="text-xs font-mono text-slate-400">{safeReviews.length} Verified Reviews</span>
               </div>
 
               <div className="space-y-4">
-                {reviews.map((rev) => (
+                {safeReviews.map((rev) => (
                   <div key={rev._id} className="glass-panel-cinema rounded-2xl p-5 border border-white/10 space-y-2">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-2">

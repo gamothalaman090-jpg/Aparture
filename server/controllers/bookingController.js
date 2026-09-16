@@ -2,7 +2,8 @@ import * as bookingService from '../services/bookingService.js';
 
 export const createBooking = async (req, res, next) => {
   try {
-    const { cameraId, startDate, endDate, notes } = req.body;
+    const cameraId = req.body.cameraId || req.body.camera;
+    const { startDate, endDate, notes } = req.body;
     const booking = await bookingService.createBooking({
       userId: req.user._id,
       cameraId,

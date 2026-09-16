@@ -46,20 +46,24 @@ export default function CheckoutPage() {
     try {
       // Submit first booking item
       const item = cartItems[0];
+      const cameraId = item.camera._id || item.camera.id;
       const payload = {
-        camera: item.camera._id || item.camera.id,
+        cameraId,
+        camera: cameraId,
         startDate: dateRange.startDate,
         endDate: dateRange.endDate,
       };
 
       const res = await api.post('/bookings', payload);
-      if (res.success && res.data) {
+      const bookingId = res?._id || res?.id || res?.data?._id || res?.data?.id;
+
+      if (bookingId) {
         soundFx.playSnapSound();
         clearCart();
         showToast('Reservation submitted successfully!', 'success');
-        navigate(`/order-confirmation/${res.data._id}`);
+        navigate(`/order-confirmation/${bookingId}`);
       } else {
-        throw new Error(res.message || 'Booking submission failed');
+        throw new Error(res?.message || 'Booking submission failed');
       }
     } catch (err) {
       showToast(err.message || 'Reservation submission error', 'error');

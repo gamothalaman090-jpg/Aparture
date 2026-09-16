@@ -15,6 +15,7 @@ import OrderConfirmationPage from './pages/OrderConfirmationPage.jsx';
 import OrderHistoryPage from './pages/OrderHistoryPage.jsx';
 import LoginPage from './pages/LoginPage.jsx';
 import RegisterPage from './pages/RegisterPage.jsx';
+import NotFoundPage from './pages/NotFoundPage.jsx';
 
 import AdminDashboardPage from './pages/admin/AdminDashboardPage.jsx';
 import AdminInventoryPage from './pages/admin/AdminInventoryPage.jsx';
@@ -46,6 +47,9 @@ export default function App() {
               <Route path="/admin/inventory" element={<AdminInventoryPage />} />
               <Route path="/admin/orders" element={<AdminOrdersPage />} />
               <Route path="/admin/categories" element={<AdminCategoriesPage />} />
+
+              {/* Catch-all 404 Not Found Route */}
+              <Route path="*" element={<NotFoundPage />} />
             </Routes>
           </CartProvider>
         </AuthProvider>
