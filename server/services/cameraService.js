@@ -1,4 +1,7 @@
+import mongoose from 'mongoose';
 import Camera from '../models/Camera.js';
+import Category from '../models/Category.js';
+import User from '../models/User.js';
 import Review from '../models/Review.js';
 import { CameraDomain } from '../domain/CameraDomain.js';
 
@@ -73,10 +76,13 @@ export const getCameras = async ({ categoryId, brand, condition, minPrice, maxPr
 };
 
 export const getCameraById = async (id) => {
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    throw new Error('Camera not found');
+  }
   const camera = await Camera.findById(id).populate('categoryId', 'name description');
   if (!camera) throw new Error('Camera not found');
 
-  const reviews = await Review.find({ cameraId: id }).populate('userId', 'name').sort({ createdAt: -1 });
+  const reviews = await Review.find({ cameraId: camera._id }).populate('userId', 'name').sort({ createdAt: -1 });
   const avgRatingResult = await Review.aggregate([
     { $match: { cameraId: camera._id } },
     { $group: { _id: null, avg: { $avg: '$rating' } } }

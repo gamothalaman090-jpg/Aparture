@@ -18,12 +18,14 @@ import {
   AlertCircle,
 } from 'lucide-react';
 import { formatCurrency } from '../utils/formatters.js';
+import { createParticleExplosion, createCameraFlashDOM, showDOMTooltip } from '../utils/domFx.js';
 import { soundFx } from '../services/audioService.js';
 import { useCart } from '../context/CartContext.jsx';
 import { useToast } from '../context/ToastContext.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
 import { fetchProductById, fetchProductReviews, fetchProducts, submitProductReview } from '../services/productService.js';
 import { RentalCalculator } from '../domain/RentalCalculator.js';
+import CameraCard from '../components/catalog/CameraCard.jsx';
 import FloatingNavbar from '../components/landing/FloatingNavbar.jsx';
 import ApertureFooter from '../components/landing/ApertureFooter.jsx';
 import CustomCursor from '../components/landing/CustomCursor.jsx';
@@ -46,6 +48,27 @@ export default function CameraDetailPage() {
   const [newComment, setNewComment] = useState('');
   const [submittingReview, setSubmittingReview] = useState(false);
 
+  const handleReviewSubmit = async (e) => {
+    e.preventDefault();
+    if (!newComment.trim()) return;
+    setSubmittingReview(true);
+    soundFx.playClickSound();
+
+    try {
+      await submitProductReview(camera?._id || camera?.id || id, null, newRating, newComment);
+      soundFx.playSnapSound();
+      showToast('Review submitted successfully!', 'success');
+      setNewComment('');
+      setNewRating(5);
+      const revs = await fetchProductReviews(camera?._id || camera?.id || id);
+      setReviews(revs || []);
+    } catch (err) {
+      showToast(err.message || 'Error submitting review', 'error');
+    } finally {
+      setSubmittingReview(false);
+    }
+  };
+
   // Date Picker State (default 3 days reservation)
   const today = new Date().toISOString().split('T')[0];
   const in3Days = new Date(Date.now() + 3 * 86400000).toISOString().split('T')[0];
@@ -63,63 +86,23 @@ export default function CameraDetailPage() {
   const loadItemDetails = async () => {
     setLoading(true);
     try {
-      const res = await api.get(`/cameras/${id}`);
-      if (res.success && res.data) {
-        setCamera(res.data);
+      const item = await fetchProductById(id);
+      if (item) {
+        setCamera(item);
+      } else {
+        setCamera(null);
       }
-      // Fetch reviews
+
       try {
-        const revRes = await api.get(`/reviews/camera/${id}`);
-        if (revRes.success && revRes.data) {
-          setReviews(revRes.data);
-        }
+        const revs = await fetchProductReviews(id);
+        setReviews(revs || []);
       } catch {
-        // Mock reviews fallback
-        setReviews([
-          {
-            _id: 'r1',
-            user: { name: 'David Fincher' },
-            rating: 5,
-            comment: 'Flawless sensor calibration. Clean RAW output on set for 4-day commercial shoot.',
-            createdAt: new Date().toISOString(),
-          },
-          {
-            _id: 'r2',
-            user: { name: 'Elena Rostova' },
-            rating: 5,
-            comment: 'Arrived packaged in heavy-duty flight case. All cables and de-clicked lenses included.',
-            createdAt: new Date().toISOString(),
-          },
-        ]);
+        setReviews([]);
       }
-    } catch {
-      // Mock camera detail fallback
-      setCamera({
-        _id: id,
-        name: 'Sony FX3 Full-Frame Cinema Body',
-        brand: 'Sony',
-        dailyRate: 110,
-        depositAmount: 500,
-        condition: 'new',
-        stockQuantity: 4,
-        averageRating: 5.0,
-        description:
-          'Full-frame 4K 120fps Cinema Line camera with S-Cinetone, active cooling system for unlimited recording, and dual native ISO 800/12800. Perfect for handheld, gimbal, and drone cinema rigs.',
-        specs: [
-          'Full-Frame 12.1MP Exmor R CMOS Sensor',
-          'UHD 4K 120p / FHD 240p RAW Output',
-          'S-Cinetone, S-Log3, HLG Gamut',
-          'Active Internal Cooling Fan System',
-          'Dual CFexpress Type A / SD Card Slots',
-          'Dual Native ISO 800 / 12,800',
-        ],
-        category: { name: 'Cinema Cameras' },
-        images: [
-          '/images/cinema_rig_onset.jpg',
-          '/images/ezgif-1b32d6e0c8f85d1e-jpg/ezgif-frame-020.jpg',
-          '/images/wireless_follow_focus.jpg',
-        ],
-      });
+    } catch (err) {
+      console.warn('Error in loadItemDetails:', err);
+      setCamera(null);
+      setReviews([]);
     } finally {
       setLoading(false);
     }
@@ -136,7 +119,11 @@ export default function CameraDetailPage() {
   const handleReserve = () => {
     if (!camera) return;
 
-    if (!isAvailable) {
+    const isAvail = typeof camera.isAvailableForRange === 'function'
+      ? camera.isAvailableForRange(startDate, endDate)
+      : true;
+
+    if (!isAvail) {
       showToast('Equipment unavailable for selected dates!', 'error');
       return;
     }
@@ -201,13 +188,21 @@ export default function CameraDetailPage() {
     ? camera.calculateGrandTotal(days)
     : rentalFee + deposit;
 
-  const galleryImages = camera.images && camera.images.length ? camera.images : [camera.imageUrl || '/images/cinema_rig_onset.jpg'];
-  const badgeClass = typeof camera.getConditionBadgeClass === 'function'
-    ? camera.getConditionBadgeClass()
-    : 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30';
-  const ratingLabel = typeof camera.getRatingLabel === 'function'
-    ? camera.getRatingLabel()
-    : `${camera.averageRating || 5.0} ★`;
+  const galleryImages = (camera.imageUrls && camera.imageUrls.length)
+    ? camera.imageUrls
+    : (camera.images && camera.images.length)
+    ? camera.images
+    : [camera.imageUrl || '/images/cinema_rig_onset.jpg'];
+
+  const categoryName = camera.categoryId?.name || camera.category?.name || 'Cinema Gear';
+
+  const specList = Array.isArray(camera.specs)
+    ? camera.specs
+    : camera.specs && typeof camera.specs === 'object'
+    ? Object.entries(camera.specs).map(([key, val]) => `${key.replace(/([A-Z])/g, ' $1').toUpperCase()}: ${val}`)
+    : [];
+
+  const safeReviews = Array.isArray(reviews) ? reviews : [];
 
   return (
     <div className="min-h-screen bg-[#050505] text-[#F5F5F7] selection:bg-cyan-500 selection:text-black font-sans overflow-x-hidden">
@@ -222,7 +217,7 @@ export default function CameraDetailPage() {
             Catalog
           </Link>
           <span>/</span>
-          <span className="text-slate-500">{camera.category?.name || 'Cinema Gear'}</span>
+          <span className="text-slate-500">{categoryName}</span>
           <span>/</span>
           <span className="text-white font-bold">{camera.name}</span>
         </div>
@@ -298,8 +293,8 @@ export default function CameraDetailPage() {
               </span>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 font-mono text-xs">
-                {camera.specs && camera.specs.length > 0 ? (
-                  camera.specs.map((spec, idx) => (
+                {specList.length > 0 ? (
+                  specList.map((spec, idx) => (
                     <div key={idx} className="flex items-center space-x-2 bg-white/5 p-3 rounded-xl border border-white/5">
                       <CheckCircle2 className="w-4 h-4 text-cyan-400 shrink-0" />
                       <span className="text-slate-200">{spec}</span>

@@ -50,7 +50,13 @@ export default function CameraCard({ camera }) {
     document.dispatchEvent(customEvent);
   };
 
-  const imageUrl = camera.imageUrl || '/images/cinema_rig_onset.jpg';
+  const imageUrl = camera.imageUrls?.[0] || camera.imageUrl || '/images/cinema_rig_onset.jpg';
+  const categoryName = camera.categoryId?.name || camera.category?.name || 'Cinema Gear';
+  const specList = Array.isArray(camera.specs)
+    ? camera.specs
+    : camera.specs && typeof camera.specs === 'object'
+    ? Object.values(camera.specs).filter(Boolean)
+    : [];
 
   return (
     <DomTiltCard
@@ -98,7 +104,7 @@ export default function CameraCard({ camera }) {
         <div className="p-6 space-y-4">
           <div>
             <span className="text-[10px] font-mono uppercase text-slate-400 tracking-wider">
-              {camera.category?.name || 'Cinema Gear'}
+              {categoryName}
             </span>
             <h3 className="text-lg font-bold text-white font-display mt-0.5 group-hover:text-cyan-400 transition-colors line-clamp-1">
               {camera.name}
@@ -106,9 +112,9 @@ export default function CameraCard({ camera }) {
           </div>
 
           {/* Specs List Tags */}
-          {camera.specs && camera.specs.length > 0 && (
+          {specList.length > 0 && (
             <div className="grid grid-cols-2 gap-2">
-              {camera.specs.slice(0, 4).map((spec, idx) => (
+              {specList.slice(0, 4).map((spec, idx) => (
                 <div key={idx} className="flex items-center space-x-1.5 text-[11px] font-mono text-slate-300 bg-white/5 px-2.5 py-1 rounded-lg border border-white/5 truncate">
                   <span className="w-1 h-1 rounded-full bg-cyan-400 shrink-0" />
                   <span className="truncate">{spec}</span>

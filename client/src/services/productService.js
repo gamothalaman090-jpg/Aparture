@@ -187,13 +187,8 @@ export async function fetchProductById(id) {
     return createRentableItem(MASTER_MOCK_ITEMS[id]);
   }
 
-  // If ID matches none, return first mock item formatted with requested ID
-  const defaultFallback = MASTER_MOCK_ITEMS.fx3;
-  return createRentableItem({
-    ...defaultFallback,
-    _id: id,
-    id: id,
-  });
+  // If ID matches none, return null
+  return null;
 }
 
 /**
