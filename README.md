@@ -3,7 +3,7 @@
 A production-grade, full-stack e-commerce web application for renting high-end cinema cameras, anamorphic prime lenses, wireless follow focus units, aerial drones, and stabilizer rigs. Built with a high-end industrial dark glass aesthetic, zero-latency custom cursor tracking, Web Audio API sound synthesis, and Object-Oriented Programming (OOP) domain business logic.
 
 ---
-haynakotangina
+
 ## 🚀 Quick Start Guide
 
 ### Prerequisites
