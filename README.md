@@ -4,7 +4,7 @@ A production-grade, full-stack e-commerce web application for renting high-end c
 
 ---
 
-##  Quick Start Guide
+## 🚀 Quick Start Guide
 
 ### Prerequisites
 - **Node.js**: v18.0.0 or higher
